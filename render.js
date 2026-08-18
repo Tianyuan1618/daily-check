@@ -260,7 +260,7 @@ const Renderer = {
       // 截图前隐藏装饰元素，避免 html2canvas 崩溃
       document.body.classList.add('capturing');
       const canvas = await html2canvas(container, {
-        backgroundColor: '#F5F0E1', scale: 2, logging: false, allowTaint: true, useCORS: false,
+        backgroundColor: '#F5F0E1', scale: 1, logging: false, useCORS: false,
       });
       document.body.classList.remove('capturing');
       const dataUrl = canvas.toDataURL('image/png');
