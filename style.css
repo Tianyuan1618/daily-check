@@ -470,6 +470,15 @@ body::after {
 @keyframes stampIn { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
 .item-checkbox.checked { animation: stampIn 0.3s ease; }
 
+/* 截图时隐藏装饰，防止 html2canvas 崩溃 */
+body.capturing::before,
+body.capturing::after {
+  display: none !important;
+}
+body.capturing {
+  background-image: none !important;
+}
+
 /* ==================== 滚动条 ==================== */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }

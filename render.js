@@ -257,14 +257,12 @@ const Renderer = {
       const container = $('.container');
       if (!container) return;
       await new Promise(r => setTimeout(r, 200));
+      // 截图前隐藏装饰元素，避免 html2canvas 崩溃
+      document.body.classList.add('capturing');
       const canvas = await html2canvas(container, {
         backgroundColor: '#F5F0E1', scale: 2, logging: false, allowTaint: true, useCORS: false,
-        onclone: (doc) => {
-          const s = doc.createElement('style');
-          s.textContent = 'body::before,body::after{display:none!important}';
-          doc.head.appendChild(s);
-        },
       });
+      document.body.classList.remove('capturing');
       const dataUrl = canvas.toDataURL('image/png');
       const fileName = `每日打卡_${new Date().toISOString().slice(0, 10)}.png`;
 
