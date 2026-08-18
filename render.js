@@ -300,7 +300,7 @@ const Renderer = {
       setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
     } catch (e) {
       console.error('保存失败:', e);
-      this._showModal('保存失败', '生成图片时发生错误，请用截图功能保存。');
+      this._showModal('保存失败', '[' + e.message + '] 请用截图功能保存。');
       saveBtn.textContent = originalText;
     } finally {
       saveBtn.disabled = false;
