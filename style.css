@@ -411,15 +411,58 @@ body::after {
 .modal-btn.cancel { background: var(--cardBg); color: var(--textLight); }
 .modal-btn.cancel:hover { border-color: var(--gold); color: var(--text); }
 
-/* ==================== 响应式 ==================== */
+/* ==================== 响应式（手机端） ==================== */
 @media (max-width: 480px) {
-  body { padding: 10px; }
-  .app-title { font-size: 1.6rem; }
-  .solar-date { font-size: 1.3rem; }
-  .almanac { flex-direction: column; gap: 0; }
-  .actions { flex-direction: column; }
-  .stats-section { flex-wrap: wrap; gap: 12px; }
-  .stat-item { min-width: 80px; }
+  body { padding: 8px; }
+
+  /* 头部压缩 */
+  .header { padding: 20px 10px 12px; }
+  .app-title { font-size: 1.5rem; letter-spacing: 4px; }
+  .app-subtitle { font-size: 0.8rem; letter-spacing: 6px; margin-bottom: 14px; }
+
+  /* 日期卡片压缩，黄历两行两列 */
+  .date-card { padding: 14px 12px; }
+  .solar-date { font-size: 1.25rem; }
+  .week-day { font-size: 1rem; }
+  .lunar-date { font-size: 0.9rem; }
+  .festival { font-size: 0.8rem; padding: 2px 10px; }
+  .almanac { flex-wrap: wrap; gap: 1px; }
+  .almanac-col { flex: 1 1 45%; padding: 8px 6px; }
+  .almanac-label { font-size: 0.7rem; }
+  .almanac-value { font-size: 1rem; }
+  .almanac-tag { font-size: 0.65rem; padding: 1px 5px; }
+  .almanac-items { gap: 2px; }
+
+  /* 打卡区压缩 */
+  .checklist-section { margin-top: 14px; }
+  .section-title { padding: 12px 14px 6px; font-size: 1rem; }
+  .category-card { padding: 10px 14px; }
+  .category-header { margin-bottom: 6px; }
+  .category-icon { font-size: 1.1rem; }
+  .category-name { font-size: 0.95rem; }
+  .cat-count { font-size: 0.75rem; }
+  .item-row { padding: 5px 0; }
+  .item-checkbox { width: 19px; height: 19px; min-width: 19px; }
+  .item-text { font-size: 0.9rem; }
+  .add-item-row { margin-top: 6px; }
+  .add-item-input { font-size: 0.8rem; padding: 5px 8px; }
+  .add-item-btn { width: 28px; height: 28px; font-size: 1.1rem; }
+
+  /* 进度条 */
+  .progress-section { margin-top: 12px; }
+  .progress-header { font-size: 0.8rem; }
+
+  /* 四个按钮改成两行两列，缩小 */
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .action-btn { padding: 9px 4px; font-size: 0.78rem; letter-spacing: 1px; min-width: 0; }
+
+  /* 统计区压缩 */
+  .stats-section { flex-wrap: wrap; padding: 12px 8px; }
+  .stat-number { font-size: 1.3rem; }
+  .stat-label { font-size: 0.7rem; letter-spacing: 1px; }
+
+  /* 页脚 */
+  .footer { font-size: 0.7rem; padding: 14px; }
 }
 
 /* ==================== 动画 ==================== */
