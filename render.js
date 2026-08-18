@@ -246,7 +246,21 @@ const Renderer = {
     const saveBtn = $('#save-img-btn');
     const originalText = saveBtn.textContent;
 
-    // 方案一：html2canvas 截图（桌面端）
+    // 检测是否移动端（html2canvas 在 Android 上容易崩溃）
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // 移动端直接使用打印（同步调用，保持用户手势）
+    if (isMobile) {
+      saveBtn.textContent = '🖨️ 打印…';
+      saveBtn.disabled = true;
+      window.print();
+      saveBtn.textContent = '✅ 请查看打印/PDF输出';
+      saveBtn.disabled = false;
+      setTimeout(() => { saveBtn.textContent = originalText; }, 4000);
+      return;
+    }
+
+    // 桌面端用 html2canvas
     if (typeof html2canvas !== 'undefined') {
       try {
         saveBtn.textContent = '⏳ 生成中…';
@@ -262,7 +276,6 @@ const Renderer = {
         const dataUrl = canvas.toDataURL('image/png');
         const fileName = `每日打卡_${new Date().toISOString().slice(0, 10)}.png`;
 
-        // 尝试 Share API
         if (navigator.share) {
           try {
             const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
@@ -270,10 +283,9 @@ const Renderer = {
               await navigator.share({ files: [new File([blob], fileName, { type: 'image/png' })], title: '每日打卡' });
               saveBtn.textContent = '✅ 已分享'; setTimeout(() => { saveBtn.textContent = originalText; }, 2000); saveBtn.disabled = false; return;
             }
-          } catch (e) { if (e.name !== 'AbortError') { /* fallthrough */ } }
+          } catch (e) { /* fallthrough */ }
         }
 
-        // 下载
         const link = document.createElement('a');
         link.href = dataUrl; link.download = fileName;
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
@@ -281,21 +293,15 @@ const Renderer = {
         saveBtn.disabled = false;
         return;
       } catch (e) {
-        console.error('html2canvas 失败:', e);
         document.body.classList.remove('capturing');
         saveBtn.disabled = false;
-        // 降级
+        // 降级到打印
       }
     }
 
-    // 方案二：打印（所有设备可用，保存为 PDF）
-    saveBtn.textContent = '🖨️ 打印…';
-    saveBtn.disabled = true;
-    // 给用户一点时间看到提示
-    await new Promise(r => setTimeout(r, 300));
+    // 最终降级
     window.print();
-    saveBtn.textContent = '✅ 打印已打开（可保存为PDF）';
-    saveBtn.disabled = false;
+    saveBtn.textContent = '✅ 请查看打印/PDF输出';
     setTimeout(() => { saveBtn.textContent = originalText; }, 3000);
   },
 
