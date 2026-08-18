@@ -246,21 +246,101 @@ const Renderer = {
     const saveBtn = $('#save-img-btn');
     const originalText = saveBtn.textContent;
 
-    // 检测是否移动端（html2canvas 在 Android 上容易崩溃）
+    // 检测是否移动端
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    // 移动端直接使用打印（同步调用，保持用户手势）
     if (isMobile) {
-      saveBtn.textContent = '🖨️ 打印…';
-      saveBtn.disabled = true;
-      window.print();
-      saveBtn.textContent = '✅ 请查看打印/PDF输出';
-      saveBtn.disabled = false;
-      setTimeout(() => { saveBtn.textContent = originalText; }, 4000);
+      // 移动端：用 SVG + foreignObject 渲染 DOM 到 canvas
+      try {
+        saveBtn.textContent = '⏳ 生成中…';
+        saveBtn.disabled = true;
+
+        const container = $('.container');
+        if (!container) { saveBtn.textContent = originalText; saveBtn.disabled = false; return; }
+
+        // 克隆容器并内联样式
+        const clone = container.cloneNode(true);
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:' + container.offsetWidth + 'px;background:#F5F0E1;font-family:' + getComputedStyle(document.body).fontFamily + ';padding:20px;';
+        wrapper.appendChild(clone);
+        document.body.appendChild(wrapper);
+
+        // 内联所有计算后样式
+        const allEls = clone.querySelectorAll('*');
+        allEls.forEach(el => {
+          const cs = getComputedStyle(el);
+          const keep = ['color','background','font-size','font-weight','font-family','padding','margin','border','border-radius','text-align','display','flex','align-items','justify-content','gap','width','height','min-width','max-width','letter-spacing','line-height','text-decoration','white-space','box-shadow','opacity'];
+          keep.forEach(k => {
+            const v = cs.getPropertyValue(k);
+            if (v && v !== 'none' && k !== 'display') {
+              try { el.style.setProperty(k, v, 'important'); } catch(e) {}
+            }
+          });
+        });
+
+        // 渲染到 canvas
+        const svgData = '<svg xmlns="http://www.w3.org/2000/svg" width="' + wrapper.offsetWidth + '" height="' + wrapper.offsetHeight + '">' +
+          '<foreignObject width="100%" height="100%">' +
+          '<div xmlns="http://www.w3.org/1999/xhtml" style="background:#F5F0E1;padding:20px;font-family:Noto Serif SC,serif">' +
+          clone.outerHTML.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') +
+          '</div></foreignObject></svg>';
+
+        document.body.removeChild(wrapper);
+
+        const img = new Image();
+        const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        img.onload = async function() {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+
+          const dataUrl = canvas.toDataURL('image/png');
+          const fileName = '每日打卡_' + new Date().toISOString().slice(0, 10) + '.png';
+
+          // 尝试 Share API
+          if (navigator.share) {
+            try {
+              const blob2 = await new Promise(r => canvas.toBlob(r, 'image/png'));
+              if (blob2) {
+                await navigator.share({ files: [new File([blob2], fileName, { type: 'image/png' })], title: '每日打卡' });
+                saveBtn.textContent = '✅ 已分享'; setTimeout(() => { saveBtn.textContent = originalText; }, 2000); saveBtn.disabled = false; return;
+              }
+            } catch(e) {}
+          }
+
+          // 下载
+          const link = document.createElement('a');
+          link.href = dataUrl; link.download = fileName;
+          document.body.appendChild(link); link.click(); document.body.removeChild(link);
+          saveBtn.textContent = '✅ 已保存'; setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
+          saveBtn.disabled = false;
+        };
+        img.onerror = function() {
+          URL.revokeObjectURL(url);
+          // SVG 方案失败，降级到打印
+          saveBtn.textContent = '🖨️ 打印…';
+          saveBtn.disabled = false;
+          window.print();
+          saveBtn.textContent = '✅ 请查看打印输出';
+          setTimeout(() => { saveBtn.textContent = originalText; }, 4000);
+        };
+        img.src = url;
+      } catch(e) {
+        saveBtn.textContent = '🖨️ 打印…';
+        saveBtn.disabled = false;
+        window.print();
+        saveBtn.textContent = '✅ 请查看打印输出';
+        setTimeout(() => { saveBtn.textContent = originalText; }, 4000);
+      }
       return;
     }
 
-    // 桌面端用 html2canvas
+    // 桌面端：html2canvas
     if (typeof html2canvas !== 'undefined') {
       try {
         saveBtn.textContent = '⏳ 生成中…';
@@ -274,7 +354,7 @@ const Renderer = {
         });
         document.body.classList.remove('capturing');
         const dataUrl = canvas.toDataURL('image/png');
-        const fileName = `每日打卡_${new Date().toISOString().slice(0, 10)}.png`;
+        const fileName = '每日打卡_' + new Date().toISOString().slice(0, 10) + '.png';
 
         if (navigator.share) {
           try {
@@ -295,13 +375,11 @@ const Renderer = {
       } catch (e) {
         document.body.classList.remove('capturing');
         saveBtn.disabled = false;
-        // 降级到打印
       }
     }
 
-    // 最终降级
     window.print();
-    saveBtn.textContent = '✅ 请查看打印/PDF输出';
+    saveBtn.textContent = '✅ 请查看打印输出';
     setTimeout(() => { saveBtn.textContent = originalText; }, 3000);
   },
 
