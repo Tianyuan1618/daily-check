@@ -247,8 +247,17 @@ const Renderer = {
     const originalText = saveBtn.textContent;
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+    // ===== 移动端：提示截图保存 =====
+    if (isMobile) {
+      this._showModal(
+        '📱 请使用手机截图',
+        '手机上暂时不支持一键保存图片。\n\n请使用手机截图功能：\n• Android：电源键 + 音量减键\n• iPhone：侧边键 + 音量加键\n\n截图后可在相册中查看和分享。'
+      );
+      return;
+    }
+
     // ===== 桌面端：html2canvas 截图下载 =====
-    if (!isMobile && typeof html2canvas !== 'undefined') {
+    if (typeof html2canvas !== 'undefined') {
       try {
         saveBtn.textContent = '⏳ 生成中…';
         saveBtn.disabled = true;
@@ -271,56 +280,12 @@ const Renderer = {
       } catch (e) {
         document.body.classList.remove('capturing');
         saveBtn.disabled = false;
-        // 降级下载
-      }
-    }
-
-    // ===== 移动端：尝试分享或下载 =====
-    if (isMobile) {
-      try {
-        saveBtn.textContent = '⏳ 生成中…';
-        saveBtn.disabled = true;
-        document.body.classList.add('capturing');
-        const container = $('.container');
-        if (!container) { saveBtn.textContent = originalText; saveBtn.disabled = false; return; }
-        await new Promise(r => setTimeout(r, 200));
-        const canvas = await html2canvas(container, {
-          backgroundColor: '#F5F0E1', scale: 1, logging: false, useCORS: false,
-        });
-        document.body.classList.remove('capturing');
-        const fileName = '每日打卡_' + new Date().toISOString().slice(0, 10) + '.png';
-
-        // 优先 Share API（分享到相册/文件管理器）
-        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-        if (blob && navigator.share) {
-          try {
-            await navigator.share({ files: [new File([blob], fileName, { type: 'image/png' })], title: '每日打卡' });
-            saveBtn.textContent = '✅ 已分享'; setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
-            saveBtn.disabled = false; return;
-          } catch(e) {}
-        }
-        // 下载
-        const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png'); link.download = fileName;
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        saveBtn.textContent = '✅ 已保存'; setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
-        saveBtn.disabled = false;
+        this._showModal('保存失败', '生成图片失败，请用浏览器截图功能保存。');
         return;
-      } catch (e) {
-        document.body.classList.remove('capturing');
-        saveBtn.disabled = false;
       }
     }
 
-    // ===== 最终降级：打印 =====
-    saveBtn.textContent = '🖨️ 打印…';
-    saveBtn.disabled = true;
-    setTimeout(function() {
-      window.print();
-      saveBtn.textContent = '📄 请在打印界面选择「保存为PDF」';
-      saveBtn.disabled = false;
-      setTimeout(function() { saveBtn.textContent = originalText; }, 5000);
-    }, 100);
+    this._showModal('保存失败', '图片库未加载，请刷新后重试。');
   },
 
   _showModal(title, text, onConfirm) {
