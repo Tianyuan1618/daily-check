@@ -260,15 +260,43 @@ const Renderer = {
       const canvas = await html2canvas(container, {
         backgroundColor: '#F5F0E1', scale: 2, logging: false, allowTaint: true, useCORS: false,
       });
-      const link = document.createElement('a');
-      link.download = `每日打卡_${new Date().toISOString().slice(0, 10)}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      saveBtn.textContent = '✅ 已保存';
-      setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
+
+      // 转 blob 并保存（兼容移动端导出）
+      canvas.toBlob(async (blob) => {
+        if (!blob) { this._showModal('保存失败', '图片生成失败，请重试。'); return; }
+        const url = URL.createObjectURL(blob);
+        const fileName = `每日打卡_${new Date().toISOString().slice(0, 10)}.png`;
+
+        // 移动端 Share API（支持 iOS/Android 分享图片）
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isMobile && navigator.share && navigator.canShare) {
+          try {
+            const file = new File([blob], fileName, { type: 'image/png' });
+            if (navigator.canShare({ files: [file] })) {
+              await navigator.share({ files: [file], title: '每日打卡' });
+              URL.revokeObjectURL(url);
+              saveBtn.textContent = '✅ 已分享';
+              setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
+              saveBtn.disabled = false;
+              return;
+            }
+          } catch (e) { /* 用户取消分享，回到下载方案 */ }
+        }
+
+        // 桌面端下载
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        saveBtn.textContent = '✅ 已保存';
+        setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
+      }, 'image/png');
     } catch (e) {
       console.error('保存失败:', e);
-      this._showModal('保存失败', '生成图片时发生错误。');
+      this._showModal('保存失败', '生成图片时发生错误，请使用截图功能。');
       saveBtn.textContent = originalText;
     } finally {
       saveBtn.disabled = false;
