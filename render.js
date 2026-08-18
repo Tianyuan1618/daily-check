@@ -259,6 +259,11 @@ const Renderer = {
       await new Promise(r => setTimeout(r, 200));
       const canvas = await html2canvas(container, {
         backgroundColor: '#F5F0E1', scale: 2, logging: false, allowTaint: true, useCORS: false,
+        onclone: (doc) => {
+          const s = doc.createElement('style');
+          s.textContent = 'body::before,body::after{display:none!important}';
+          doc.head.appendChild(s);
+        },
       });
       const dataUrl = canvas.toDataURL('image/png');
       const fileName = `每日打卡_${new Date().toISOString().slice(0, 10)}.png`;
