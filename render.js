@@ -245,69 +245,62 @@ const Renderer = {
   async _handleSaveImage() {
     const saveBtn = $('#save-img-btn');
     const originalText = saveBtn.textContent;
-    saveBtn.textContent = '⏳ 生成中…';
-    saveBtn.disabled = true;
-    try {
-      if (typeof html2canvas === 'undefined') {
-        this._showModal('保存失败', 'html2canvas 库未加载。');
-        saveBtn.textContent = originalText;
+
+    // 尝试方案一：html2canvas（桌面端）
+    if (typeof html2canvas !== 'undefined') {
+      try {
+        saveBtn.textContent = '⏳ 生成中…';
+        saveBtn.disabled = true;
+        document.body.classList.add('capturing');
+        const container = $('.container');
+        if (!container) { saveBtn.textContent = originalText; saveBtn.disabled = false; return; }
+        await new Promise(r => setTimeout(r, 200));
+        const canvas = await html2canvas(container, {
+          backgroundColor: '#F5F0E1', scale: 1, logging: false, useCORS: false,
+        });
+        document.body.classList.remove('capturing');
+        const dataUrl = canvas.toDataURL('image/png');
+        const fileName = `每日打卡_${new Date().toISOString().slice(0, 10)}.png`;
+
+        // 尝试 Share API
+        if (navigator.share) {
+          try {
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+            if (blob) {
+              await navigator.share({ files: [new File([blob], fileName, { type: 'image/png' })], title: '每日打卡' });
+              saveBtn.textContent = '✅ 已分享'; setTimeout(() => { saveBtn.textContent = originalText; }, 2000); saveBtn.disabled = false; return;
+            }
+          } catch (e) { if (e.name !== 'AbortError') { /* fallthrough */ } }
+        }
+
+        // 新窗口打开
+        const imgWin = window.open('', '_blank');
+        if (imgWin) {
+          imgWin.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>每日打卡</title><style>body{text-align:center;background:#F5F0E1;padding:20px;font-family:sans-serif;margin:0}img{max-width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.1)}p{color:#666;margin-top:16px;font-size:14px;}</style></head><body><img src="' + dataUrl + '" alt="每日打卡"><p>👆 长按图片，选择「保存到相册」</p></body></html>');
+          imgWin.document.close();
+          saveBtn.textContent = '✅ 已打开';
+        } else {
+          const link = document.createElement('a');
+          link.href = dataUrl; link.download = fileName;
+          document.body.appendChild(link); link.click(); document.body.removeChild(link);
+          saveBtn.textContent = '✅ 已保存';
+        }
+        setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
         saveBtn.disabled = false;
         return;
+      } catch (e) {
+        console.error('html2canvas 失败:', e);
+        document.body.classList.remove('capturing');
+        saveBtn.disabled = false;
+        // 降级到打印方案
       }
-      const container = $('.container');
-      if (!container) return;
-      await new Promise(r => setTimeout(r, 200));
-      // 截图前隐藏装饰元素，避免 html2canvas 崩溃
-      document.body.classList.add('capturing');
-      const canvas = await html2canvas(container, {
-        backgroundColor: '#F5F0E1', scale: 1, logging: false, useCORS: false,
-      });
-      document.body.classList.remove('capturing');
-      const dataUrl = canvas.toDataURL('image/png');
-      const fileName = `每日打卡_${new Date().toISOString().slice(0, 10)}.png`;
-
-      // 方案一：Share API（移动端，分享到相册/文件管理器）
-      if (navigator.share) {
-        try {
-          // 先转 blob 再分享
-          const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-          if (blob) {
-            const file = new File([blob], fileName, { type: 'image/png' });
-            await navigator.share({ files: [file], title: '每日打卡' });
-            saveBtn.textContent = '✅ 已分享';
-            setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
-            saveBtn.disabled = false;
-            return;
-          }
-        } catch (e) {
-          if (e.name !== 'AbortError') { /* 用户取消，继续尝试其他方案 */ }
-        }
-      }
-
-      // 方案二：新窗口打开图片（用户长按保存）
-      const imgWin = window.open('', '_blank');
-      if (imgWin) {
-        imgWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>每日打卡</title><style>body{text-align:center;background:#F5F0E1;padding:20px;font-family:sans-serif;}img{max-width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.1);}p{color:#666;margin-top:16px;font-size:14px;}</style></head><body><img src="${dataUrl}" alt="每日打卡"><p>👆 长按图片，选择「保存到相册」</p></body></html>`);
-        imgWin.document.close();
-        saveBtn.textContent = '✅ 已打开';
-      } else {
-        // 方案三：直接下载（桌面端，部分 Android 也支持）
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        saveBtn.textContent = '✅ 已保存';
-      }
-      setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
-    } catch (e) {
-      console.error('保存失败:', e);
-      this._showModal('保存失败', '[' + e.message + '] 请用截图功能保存。');
-      saveBtn.textContent = originalText;
-    } finally {
-      saveBtn.disabled = false;
     }
+
+    // 方案二：浏览器打印（所有设备兼容）
+    saveBtn.textContent = '🖨️ 打开打印…';
+    saveBtn.disabled = false;
+    window.print();
+    saveBtn.textContent = originalText;
   },
 
   _showModal(title, text, onConfirm) {
