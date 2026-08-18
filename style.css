@@ -1,0 +1,434 @@
+/**
+ * ============================================================
+ *  style.css — 中国风主题样式
+ * ============================================================
+ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font);
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 8% 12%, rgba(201, 169, 110, 0.12) 0%, transparent 35%),
+    radial-gradient(ellipse at 5% 8%, rgba(196, 30, 58, 0.06) 0%, transparent 20%),
+    radial-gradient(ellipse at 92% 88%, rgba(46, 125, 50, 0.06) 0%, transparent 30%),
+    radial-gradient(ellipse at 88% 85%, rgba(46, 125, 50, 0.04) 0%, transparent 25%),
+    radial-gradient(ellipse at 10% 20%, rgba(139, 37, 0, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 80%, rgba(201, 169, 110, 0.05) 0%, transparent 50%);
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+}
+
+/* 梅花装饰 - 左上角 */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 260px;
+  background:
+    /* 主枝干 */
+    linear-gradient(135deg, transparent 30%, rgba(139, 37, 0, 0.12) 33%, transparent 38%),
+    linear-gradient(160deg, transparent 40%, rgba(139, 37, 0, 0.10) 43%, transparent 48%),
+    /* 小枝 */
+    linear-gradient(180deg, transparent 50%, rgba(139, 37, 0, 0.08) 52%, transparent 56%),
+    /* 梅花 - 五瓣 */
+    radial-gradient(circle at 22% 25%, rgba(196, 30, 58, 0.15) 0%, transparent 10px),
+    radial-gradient(circle at 28% 20%, rgba(196, 30, 58, 0.12) 0%, transparent 8px),
+    radial-gradient(circle at 18% 18%, rgba(196, 30, 58, 0.10) 0%, transparent 7px),
+    radial-gradient(circle at 32% 28%, rgba(196, 30, 58, 0.08) 0%, transparent 6px),
+    /* 花苞 */
+    radial-gradient(circle at 15% 35%, rgba(196, 30, 58, 0.12) 0%, transparent 5px),
+    radial-gradient(circle at 35% 15%, rgba(196, 30, 58, 0.08) 0%, transparent 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 竹子装饰 - 右下角 */
+body::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 200px;
+  height: 260px;
+  background:
+    /* 竹竿 */
+    linear-gradient(90deg, transparent 65%, rgba(46, 125, 50, 0.12) 68%, transparent 72%),
+    linear-gradient(90deg, transparent 75%, rgba(46, 125, 50, 0.10) 78%, transparent 82%),
+    /* 竹节 */
+    repeating-linear-gradient(0deg,
+      transparent, transparent 22px,
+      rgba(46, 125, 50, 0.08) 22px, rgba(46, 125, 50, 0.08) 24px,
+      transparent 24px, transparent 44px),
+    /* 竹叶 - 多片 */
+    radial-gradient(ellipse 22px 7px at 58% 10%, rgba(46, 125, 50, 0.15) 0%, transparent 100%),
+    radial-gradient(ellipse 18px 6px at 55% 20%, rgba(46, 125, 50, 0.12) 0%, transparent 100%),
+    radial-gradient(ellipse 20px 6px at 62% 35%, rgba(46, 125, 50, 0.10) 0%, transparent 100%),
+    radial-gradient(ellipse 16px 5px at 50% 50%, rgba(46, 125, 50, 0.12) 0%, transparent 100%),
+    radial-gradient(ellipse 20px 6px at 60% 65%, rgba(46, 125, 50, 0.08) 0%, transparent 100%),
+    radial-gradient(ellipse 18px 5px at 55% 80%, rgba(46, 125, 50, 0.10) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+:root {
+  --primary: #8B2500;
+  --secondary: #D4A574;
+  --bg: #F5F0E1;
+  --cardBg: #FFFBF0;
+  --text: #2C1810;
+  --textLight: #8B7355;
+  --accent: #C41E3A;
+  --gold: #C9A96E;
+  --border: #D4C5A9;
+  --done: #A0A090;
+  --success: #2E7D32;
+  --font: "Noto Serif SC", "Source Han Serif SC", "SimSun", "STSong", serif;
+  --shadow: 0 2px 12px rgba(44, 24, 16, 0.08);
+  --radius: 12px;
+}
+
+.container {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* ==================== 头部 ==================== */
+.header {
+  text-align: center;
+  padding: 30px 20px 20px;
+  position: relative;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--primary), var(--gold), transparent);
+  border-radius: 2px;
+}
+
+.header::after {
+  display: none;
+}
+
+.app-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 6px;
+  margin-bottom: 4px;
+  text-shadow: 1px 1px 2px rgba(139, 37, 0, 0.1);
+}
+
+.app-subtitle {
+  font-size: 0.9rem;
+  color: var(--textLight);
+  letter-spacing: 8px;
+  margin-bottom: 24px;
+}
+
+/* ==================== 日期卡片 ==================== */
+.date-card {
+  background: var(--cardBg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.date-card::before, .date-card::after {
+  content: '◆';
+  position: absolute;
+  font-size: 12px;
+  color: var(--gold);
+  opacity: 0.4;
+}
+.date-card::before { top: 6px; left: 10px; }
+.date-card::after { bottom: 6px; right: 10px; }
+
+.solar-date { font-size: 1.5rem; font-weight: 600; color: var(--text); letter-spacing: 2px; }
+.week-day { font-size: 1.1rem; color: var(--accent); margin-top: 2px; letter-spacing: 4px; }
+.divider { width: 60px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 12px auto; }
+.lunar-date { font-size: 1rem; color: var(--textLight); letter-spacing: 1px; line-height: 1.6; }
+.lunar-date .gan-zhi { color: var(--primary); font-weight: 600; }
+.festival { display: inline-block; margin-top: 8px; padding: 2px 14px; background: linear-gradient(135deg, var(--accent), #E85D3A); color: #fff; border-radius: 20px; font-size: 0.9rem; letter-spacing: 2px; font-weight: 500; }
+
+/* ==================== 黄历 ==================== */
+.almanac { display: flex; gap: 1px; margin-top: 14px; background: var(--border); border-radius: 8px; overflow: hidden; }
+.almanac-col { flex: 1; padding: 10px 8px; text-align: center; background: var(--cardBg); }
+.almanac-col:first-child { background: linear-gradient(135deg, #FFF5EE, var(--cardBg)); }
+.almanac-label { font-size: 0.75rem; color: var(--textLight); letter-spacing: 2px; margin-bottom: 4px; }
+.almanac-value { font-size: 1.1rem; font-weight: 600; color: var(--primary); letter-spacing: 1px; }
+.almanac-value.luck-吉 { color: var(--success); }
+.almanac-value.luck-凶 { color: var(--accent); }
+.almanac-value.luck-平 { color: var(--gold); }
+.almanac-items { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin-top: 4px; }
+.almanac-tag { display: inline-block; padding: 1px 8px; font-size: 0.75rem; border-radius: 10px; background: #F5F0E1; color: var(--textLight); letter-spacing: 1px; }
+.almanac-tag.yi { background: #E8F5E9; color: #2E7D32; }
+.almanac-tag.ji { background: #FFF3E0; color: #BF360C; }
+.xiu-display { font-size: 0.8rem; color: var(--textLight); margin-top: 4px; }
+
+/* ==================== 进度条 ==================== */
+.progress-section { margin-top: 16px; }
+.progress-header { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--textLight); margin-bottom: 6px; }
+.progress-bar { width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--success)); border-radius: 3px; transition: width 0.5s ease; }
+
+/* ==================== 打卡分类区 ==================== */
+.checklist-section {
+  margin-top: 20px;
+  background: var(--cardBg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.section-title {
+  padding: 16px 20px 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary);
+  letter-spacing: 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::before { content: '☰'; font-size: 0.9rem; opacity: 0.5; }
+
+/* 分类卡片 */
+.category-card {
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(212, 197, 169, 0.3);
+}
+.category-card:last-child { border-bottom: none; }
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.category-icon { font-size: 1.2rem; }
+.category-name { font-size: 1rem; font-weight: 600; color: var(--text); letter-spacing: 2px; flex: 1; }
+.cat-count { font-size: 0.8rem; color: var(--textLight); letter-spacing: 1px; }
+
+/* 条目列表 */
+.item-list { margin-left: 4px; }
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(212, 197, 169, 0.2);
+  animation: fadeIn 0.2s ease;
+}
+
+.item-row:last-child { border-bottom: none; }
+
+/* 条目 checkbox */
+.item-checkbox {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.7rem;
+  color: #fff;
+  user-select: none;
+}
+
+.item-checkbox:hover { border-color: var(--gold); }
+.item-checkbox.checked { background: var(--success); border-color: var(--success); box-shadow: 0 0 6px rgba(46, 125, 50, 0.3); }
+
+.item-text { flex: 1; font-size: 0.95rem; color: var(--text); letter-spacing: 1px; transition: all 0.3s; }
+.item-text.done { color: var(--done); text-decoration: line-through; text-decoration-color: var(--gold); }
+
+.item-del {
+  width: 20px; height: 20px;
+  border: none; background: transparent;
+  color: var(--textLight); font-size: 0.9rem;
+  cursor: pointer; opacity: 0;
+  transition: all 0.3s;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  font-family: var(--font);
+}
+.item-row:hover .item-del { opacity: 0.4; }
+.item-del:hover { opacity: 1 !important; background: rgba(196, 30, 58, 0.1); color: var(--accent); }
+
+/* 添加条目行 */
+.add-item-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.add-item-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  font-family: var(--font);
+  font-size: 0.85rem;
+  color: var(--text);
+  background: rgba(245, 240, 225, 0.3);
+  outline: none;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+}
+
+.add-item-input::placeholder { color: var(--textLight); opacity: 0.4; font-style: italic; }
+.add-item-input:focus { border-color: var(--gold); border-style: solid; background: rgba(245, 240, 225, 0.6); }
+
+.add-item-btn {
+  width: 32px; height: 32px;
+  border: 1px dashed var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--gold);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font);
+}
+
+.add-item-btn:hover { border-color: var(--success); border-style: solid; color: var(--success); background: rgba(46, 125, 50, 0.05); }
+
+/* ==================== 操作按钮 ==================== */
+.actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  flex: 1;
+  min-width: 80px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--cardBg);
+  font-family: var(--font);
+  font-size: 0.85rem;
+  color: var(--textLight);
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.action-btn:hover { border-color: var(--gold); color: var(--primary); background: #FFF; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(201, 169, 110, 0.2); }
+.action-btn.danger:hover { border-color: var(--accent); color: var(--accent); }
+.action-btn.save-img { background: linear-gradient(135deg, var(--cardBg), #FFF5EE); border-color: var(--gold); }
+.action-btn.save-img:hover { background: linear-gradient(135deg, #FFF5EE, #FFF); border-color: var(--primary); color: var(--primary); }
+
+/* ==================== 统计 ==================== */
+.stats-section {
+  margin-top: 16px;
+  background: var(--cardBg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+
+.stat-item { flex: 1; }
+.stat-number { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 0.75rem; color: var(--textLight); margin-top: 2px; letter-spacing: 2px; }
+
+/* ==================== 页脚 ==================== */
+.footer { text-align: center; padding: 20px; color: var(--textLight); font-size: 0.8rem; letter-spacing: 2px; opacity: 0.6; }
+
+/* ==================== 弹窗 ==================== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(44, 24, 16, 0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--cardBg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px 20px;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(44, 24, 16, 0.2);
+  text-align: center;
+  position: relative;
+  z-index: 1001;
+}
+.modal-title { font-size: 1.1rem; color: var(--text); margin-bottom: 12px; letter-spacing: 2px; }
+.modal-text { font-size: 0.9rem; color: var(--textLight); margin-bottom: 20px; line-height: 1.6; }
+.modal-btns { display: flex; gap: 12px; justify-content: center; }
+.modal-btn { padding: 8px 24px; border: 1px solid var(--border); border-radius: 8px; font-family: var(--font); font-size: 0.9rem; cursor: pointer; transition: all 0.3s; letter-spacing: 2px; }
+.modal-btn.confirm { background: var(--accent); color: #fff; border-color: var(--accent); }
+.modal-btn.confirm:hover { background: #D32F2F; }
+.modal-btn.cancel { background: var(--cardBg); color: var(--textLight); }
+.modal-btn.cancel:hover { border-color: var(--gold); color: var(--text); }
+
+/* ==================== 响应式 ==================== */
+@media (max-width: 480px) {
+  body { padding: 10px; }
+  .app-title { font-size: 1.6rem; }
+  .solar-date { font-size: 1.3rem; }
+  .almanac { flex-direction: column; gap: 0; }
+  .actions { flex-direction: column; }
+  .stats-section { flex-wrap: wrap; gap: 12px; }
+  .stat-item { min-width: 80px; }
+}
+
+/* ==================== 动画 ==================== */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes stampIn { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+.item-checkbox.checked { animation: stampIn 0.3s ease; }
+
+/* ==================== 滚动条 ==================== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
