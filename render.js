@@ -246,7 +246,7 @@ const Renderer = {
     const saveBtn = $('#save-img-btn');
     const originalText = saveBtn.textContent;
 
-    // 尝试方案一：html2canvas（桌面端）
+    // 方案一：html2canvas 截图（桌面端）
     if (typeof html2canvas !== 'undefined') {
       try {
         saveBtn.textContent = '⏳ 生成中…';
@@ -273,34 +273,30 @@ const Renderer = {
           } catch (e) { if (e.name !== 'AbortError') { /* fallthrough */ } }
         }
 
-        // 新窗口打开
-        const imgWin = window.open('', '_blank');
-        if (imgWin) {
-          imgWin.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>每日打卡</title><style>body{text-align:center;background:#F5F0E1;padding:20px;font-family:sans-serif;margin:0}img{max-width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.1)}p{color:#666;margin-top:16px;font-size:14px;}</style></head><body><img src="' + dataUrl + '" alt="每日打卡"><p>👆 长按图片，选择「保存到相册」</p></body></html>');
-          imgWin.document.close();
-          saveBtn.textContent = '✅ 已打开';
-        } else {
-          const link = document.createElement('a');
-          link.href = dataUrl; link.download = fileName;
-          document.body.appendChild(link); link.click(); document.body.removeChild(link);
-          saveBtn.textContent = '✅ 已保存';
-        }
-        setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
+        // 下载
+        const link = document.createElement('a');
+        link.href = dataUrl; link.download = fileName;
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        saveBtn.textContent = '✅ 已保存'; setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
         saveBtn.disabled = false;
         return;
       } catch (e) {
         console.error('html2canvas 失败:', e);
         document.body.classList.remove('capturing');
         saveBtn.disabled = false;
-        // 降级到打印方案
+        // 降级
       }
     }
 
-    // 方案二：浏览器打印（所有设备兼容）
-    saveBtn.textContent = '🖨️ 打开打印…';
-    saveBtn.disabled = false;
+    // 方案二：打印（所有设备可用，保存为 PDF）
+    saveBtn.textContent = '🖨️ 打印…';
+    saveBtn.disabled = true;
+    // 给用户一点时间看到提示
+    await new Promise(r => setTimeout(r, 300));
     window.print();
-    saveBtn.textContent = originalText;
+    saveBtn.textContent = '✅ 打印已打开（可保存为PDF）';
+    saveBtn.disabled = false;
+    setTimeout(() => { saveBtn.textContent = originalText; }, 3000);
   },
 
   _showModal(title, text, onConfirm) {
