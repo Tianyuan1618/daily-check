@@ -27,6 +27,10 @@ const Renderer = {
     const header = $('#header');
     if (!header) return;
     const festivalHtml = info.festival ? `<div class="festival">${info.festival}</div>` : '';
+    // 黄历
+    const alma = info.almanac || { jianChu: '—', xiu: '—', yi: [], ji: [], luck: '平' };
+    const yiTags = alma.yi.map(t => `<span class="almanac-tag yi">${t}</span>`).join('');
+    const jiTags = alma.ji.map(t => `<span class="almanac-tag ji">${t}</span>`).join('');
     header.innerHTML = `
       <div class="date-card">
         <div class="solar-date">${info.dateStr}</div>
@@ -37,6 +41,25 @@ const Renderer = {
         </div>
         <div class="lunar-date" style="font-size:0.85rem;margin-top:2px;">${info.ganZhiDay}日</div>
         ${festivalHtml}
+        <div class="almanac">
+          <div class="almanac-col">
+            <div class="almanac-label">建除</div>
+            <div class="almanac-value">${alma.jianChu}</div>
+          </div>
+          <div class="almanac-col">
+            <div class="almanac-label">星宿</div>
+            <div class="almanac-value luck-${alma.xiuLuck}">${alma.xiu}</div>
+            <div class="xiu-display">${alma.xiuLuck}</div>
+          </div>
+          <div class="almanac-col">
+            <div class="almanac-label">宜</div>
+            <div class="almanac-items">${yiTags || '<span class="almanac-tag">—</span>'}</div>
+          </div>
+          <div class="almanac-col">
+            <div class="almanac-label">忌</div>
+            <div class="almanac-items">${jiTags || '<span class="almanac-tag">—</span>'}</div>
+          </div>
+        </div>
       </div>
     `;
   },
