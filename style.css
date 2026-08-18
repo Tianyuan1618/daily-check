@@ -213,7 +213,7 @@ body::after {
 .section-title {
   padding: 16px 20px 8px;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--primary);
   letter-spacing: 3px;
   display: flex;
@@ -270,13 +270,14 @@ body::after {
   font-size: 0.7rem;
   color: #fff;
   user-select: none;
+  background: var(--cardBg);
 }
 
 .item-checkbox:hover { border-color: var(--gold); }
 .item-checkbox.checked { background: var(--success); border-color: var(--success); box-shadow: 0 0 6px rgba(46, 125, 50, 0.3); }
 
-.item-text { flex: 1; font-size: 0.95rem; color: var(--text); letter-spacing: 1px; transition: all 0.3s; }
-.item-text.done { color: var(--done); text-decoration: line-through; text-decoration-color: var(--gold); }
+.item-text { flex: 1; font-size: 0.95rem; color: var(--text); letter-spacing: 1px; transition: all 0.3s; font-weight: 500; }
+.item-text.done { color: #8B8B80; text-decoration: line-through; text-decoration-color: var(--gold); }
 
 .item-del {
   width: 20px; height: 20px;
