@@ -814,7 +814,7 @@ body::after {
 .hm-cats { padding: 0 16px 14px; }
 .hm-cat-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
 .hm-cat-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
-.hm-cat-name { font-size: 0.85rem; color: var(--text); width: 50px; letter-spacing: 1px; white-space: nowrap; flex-shrink: 0; }
+.hm-cat-name { font-size: 0.85rem; color: var(--text); letter-spacing: 1px; white-space: nowrap; flex-shrink: 0; min-width: 32px; }
 .hm-bar-bg { flex: 1; height: 14px; background: #ECE6D8; border-radius: 7px; overflow: hidden; }
 .hm-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--success)); border-radius: 7px; transition: width 0.5s ease; min-width: 4px; }
 .hm-cat-pct { font-size: 0.8rem; color: var(--textLight); width: 36px; text-align: right; }
@@ -841,7 +841,7 @@ body::after {
   .hm-cell { font-size: 0.65rem; }
   .hm-summary { padding: 10px; }
   .hm-cats { padding: 0 10px 10px; }
-  .hm-cat-name { width: 40px; font-size: 0.8rem; }
+  .hm-cat-name { font-size: 0.8rem; }
   .hm-back-btn { width: calc(100% - 20px); margin: 0 10px 10px; }
   .hm-legend { font-size: 0.65rem; gap: 4px; }
 }
