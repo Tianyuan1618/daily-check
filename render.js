@@ -296,7 +296,17 @@ const Renderer = {
       </div>
     `;
 
-    // 绑定事件
+    /* 统计热力图单元格点击 */
+    container.addEventListener('click', (e) => {
+      const cell = e.target.closest('.hm-cell:not(.empty)');
+      if (!cell) return;
+      const y = this._statsYear;
+      const m = this._statsMonth;
+      const d = parseInt(cell.textContent);
+      if (!d) return;
+      this.currentDateKey = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      this._hideMonthStats();
+    });
     const prev = $('#hm-prev');
     const next = $('#hm-next');
     const back = $('#hm-back-btn');

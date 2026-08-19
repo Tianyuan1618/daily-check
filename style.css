@@ -784,7 +784,7 @@ body::after {
 .hm-cell.l0 { background: #ECE6D8; color: #B8A88A; }
 .hm-cell.l1 { background: #F5D0D0; color: #8B2500; }
 .hm-cell.l2 { background: #F5E6C8; color: #8B6E00; }
-.hm-cell.l3 { background: #D4C5A9; color: #5C4033; }
+.hm-cell.l3 { background: #F0C060; color: #5C4033; }
 .hm-cell.l4 { background: #A8D5A0; color: #1B5E20; }
 .hm-cell.l5 { background: #2E7D32; color: #fff; }
 .hm-cell.empty { background: transparent; }
@@ -813,8 +813,8 @@ body::after {
 .hm-label { display: block; font-size: 0.7rem; color: var(--textLight); margin-top: 2px; letter-spacing: 1px; }
 .hm-cats { padding: 0 16px 14px; }
 .hm-cat-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
-.hm-cat-icon { font-size: 1rem; width: 20px; text-align: center; }
-.hm-cat-name { font-size: 0.85rem; color: var(--text); width: 50px; letter-spacing: 1px; }
+.hm-cat-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+.hm-cat-name { font-size: 0.85rem; color: var(--text); width: 50px; letter-spacing: 1px; white-space: nowrap; flex-shrink: 0; }
 .hm-bar-bg { flex: 1; height: 14px; background: #ECE6D8; border-radius: 7px; overflow: hidden; }
 .hm-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--success)); border-radius: 7px; transition: width 0.5s ease; min-width: 4px; }
 .hm-cat-pct { font-size: 0.8rem; color: var(--textLight); width: 36px; text-align: right; }
