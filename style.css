@@ -261,6 +261,21 @@ body::after {
 
 .section-title::before { content: '☰'; font-size: 0.9rem; opacity: 0.5; }
 
+/* 标题栏图标按钮（管理组） */
+.section-btn {
+  margin-left: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  font-size: 0.85rem;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: var(--textLight);
+  line-height: 1;
+}
+.section-btn:hover { border-color: var(--gold); color: var(--primary); background: #FFF; }
+
 /* 分类卡片 */
 .category-card {
   padding: 12px 20px;
@@ -442,9 +457,9 @@ body::after {
 }
 
 .action-btn:hover { border-color: var(--gold); color: var(--primary); background: #FFF; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(201, 169, 110, 0.2); }
+.action-btn.primary { background: linear-gradient(135deg, var(--cardBg), #FFF5EE); border-color: var(--gold); color: var(--primary); font-weight: 600; }
+.action-btn.primary:hover { background: linear-gradient(135deg, #FFF5EE, #FFF); border-color: var(--primary); }
 .action-btn.danger:hover { border-color: var(--accent); color: var(--accent); }
-.action-btn.save-img { background: linear-gradient(135deg, var(--cardBg), #FFF5EE); border-color: var(--gold); }
-.action-btn.save-img:hover { background: linear-gradient(135deg, #FFF5EE, #FFF); border-color: var(--primary); color: var(--primary); }
 
 /* ==================== 统计 ==================== */
 .stats-section {
@@ -567,6 +582,9 @@ body::after {
   .lunar-date { font-size: 0.9rem; }
   .head-tag { font-size: 0.72rem; padding: 2px 9px; }
 
+  /* 标题栏图标按钮 */
+  .section-btn { font-size: 0.75rem; padding: 2px 6px; }
+
   /* 打卡区压缩 */
   .checklist-section { margin-top: 14px; }
   .section-title { padding: 12px 14px 6px; font-size: 1rem; }
@@ -586,10 +604,9 @@ body::after {
   .progress-section { margin-top: 12px; }
   .progress-header { font-size: 0.8rem; }
 
-  /* 五个按钮两行两列 + 末行全宽，缩小 */
+  /* 四个按钮两行两列，缩小 */
   .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
   .action-btn { padding: 9px 4px; font-size: 0.78rem; letter-spacing: 1px; min-width: 0; }
-  .action-btn:last-child { grid-column: 1 / -1; }
 
   /* 统计区压缩 */
   .stats-section { flex-wrap: wrap; padding: 12px 8px; }
