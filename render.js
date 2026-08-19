@@ -34,6 +34,18 @@ const Renderer = {
     this._renderDateNav(info);
     this._renderHeader(info);
 
+    if (this._showingStats) {
+      // 统计视图：渲染月历 + 汇总
+      const today = new Date();
+      this._statsYear = this._statsYear || today.getFullYear();
+      this._statsMonth = this._statsMonth || (today.getMonth() + 1);
+      this._renderMonthStatsView();
+      // 隐藏进度条和统计区（已在 _renderStats 中处理）
+      const prog = $('#progress-section');
+      if (prog) prog.innerHTML = '';
+      return;
+    }
+
     if (this._isToday()) {
       const dayData = checkinApp.getDay(dateKey);
       this._renderCategories(dayData, true);
@@ -178,6 +190,8 @@ const Renderer = {
   _renderStats() {
     const container = $('#stats-section');
     if (!container) return;
+    // 如果正在显示统计视图，隐藏统计区
+    if (this._showingStats) { container.innerHTML = ''; return; }
     const stats = checkinApp.getStats();
     const today = checkinApp.getToday();
     container.innerHTML = `
@@ -196,6 +210,108 @@ const Renderer = {
     `;
     const footer = $('.footer');
     if (footer) footer.textContent = CONFIG.app.footer;
+  },
+
+  /* ==================== 月统计视图 ==================== */
+
+  _showingStats: false,
+  _statsYear: null,
+  _statsMonth: null,
+
+  _showMonthStats() {
+    const today = new Date();
+    this._statsYear = today.getFullYear();
+    this._statsMonth = today.getMonth() + 1;
+    this._showingStats = true;
+    this.render();
+  },
+
+  _hideMonthStats() {
+    this._showingStats = false;
+    this._statsYear = null;
+    this._statsMonth = null;
+    this.render();
+  },
+
+  _renderMonthStatsView() {
+    const container = $('#checklist');
+    if (!container) return;
+    const stats = checkinApp.getMonthStats(this._statsYear, this._statsMonth);
+    if (!stats) { container.innerHTML = '<div class="empty-tip">暂无数据</div>'; return; }
+
+    const daysInMonth = stats.summary.monthDays;
+    const firstDay = new Date(this._statsYear, this._statsMonth - 1, 1).getDay();
+    const emptyStart = firstDay === 0 ? 6 : firstDay - 1;
+
+    // 热力图格子
+    let heatHtml = '';
+    for (let i = 0; i < emptyStart; i++) heatHtml += '<span class="hm-cell empty"></span>';
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = this._statsYear + '-' + String(this._statsMonth).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      const dayInfo = stats.days[key];
+      const cls = this._heatColor(dayInfo);
+      const pct = dayInfo && dayInfo.hasData ? dayInfo.progress + '%' : '—';
+      heatHtml += '<span class="hm-cell ' + cls + '" title="' + key + ' 完成' + pct + '">' + d + '</span>';
+    }
+
+    // 分类条形图
+    const cats = stats.summary.categoryStats;
+    const catIds = Object.keys(cats);
+    const barHtml = catIds.map(id => {
+      const c = cats[id];
+      const w = Math.max(c.avgCompletion, 4);
+      return '<div class="hm-cat-row"><span class="hm-cat-icon">' + c.icon + '</span><span class="hm-cat-name">' + this._escapeHtml(c.name) + '</span><div class="hm-bar-bg"><div class="hm-bar-fill" style="width:' + w + '%"></div></div><span class="hm-cat-pct">' + c.avgCompletion + '%</span></div>';
+    }).join('');
+
+    container.innerHTML = `
+      <div class="hm-section">
+        <div class="hm-nav">
+          <button class="hm-nav-btn" id="hm-prev">‹</button>
+          <span class="hm-title">${this._statsYear}年 ${this._statsMonth}月</span>
+          <button class="hm-nav-btn" id="hm-next">›</button>
+        </div>
+        <div class="hm-weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+        <div class="hm-grid">${heatHtml}</div>
+        <div class="hm-legend">
+          <span class="hm-legend-item"><span class="hm-cell l0"></span> 无</span>
+          <span class="hm-legend-item"><span class="hm-cell l1"></span> 0%</span>
+          <span class="hm-legend-item"><span class="hm-cell l2"></span> 1-49%</span>
+          <span class="hm-legend-item"><span class="hm-cell l3"></span> 50-79%</span>
+          <span class="hm-legend-item"><span class="hm-cell l4"></span> 80-99%</span>
+          <span class="hm-legend-item"><span class="hm-cell l5"></span> 100%</span>
+        </div>
+        <div class="hm-summary">
+          <div class="hm-summary-row">
+            <div class="hm-summary-card"><span class="hm-num">${stats.summary.totalDays}</span><span class="hm-label">打卡天数 / ${stats.summary.monthDays}</span></div>
+            <div class="hm-summary-card"><span class="hm-num">${stats.summary.avgCompletion}%</span><span class="hm-label">平均完成率</span></div>
+          </div>
+          <div class="hm-summary-row">
+            <div class="hm-summary-card"><span class="hm-num">${stats.summary.currentStreak}</span><span class="hm-label">当前连续</span></div>
+            <div class="hm-summary-card"><span class="hm-num">${stats.summary.bestStreak}</span><span class="hm-label">最长连续</span></div>
+          </div>
+        </div>
+        <div class="hm-cats">${barHtml}</div>
+        <button class="hm-back-btn" id="hm-back-btn">📋 返回打卡</button>
+      </div>
+    `;
+
+    // 绑定事件
+    const prev = $('#hm-prev');
+    const next = $('#hm-next');
+    const back = $('#hm-back-btn');
+    if (prev) prev.onclick = () => { this._statsMonth--; if (this._statsMonth < 1) { this._statsMonth = 12; this._statsYear--; } this._renderMonthStatsView(); };
+    if (next) next.onclick = () => { this._statsMonth++; if (this._statsMonth > 12) { this._statsMonth = 1; this._statsYear++; } this._renderMonthStatsView(); };
+    if (back) back.onclick = () => this._hideMonthStats();
+  },
+
+  _heatColor(dayInfo) {
+    if (!dayInfo || !dayInfo.hasData) return 'l0';
+    if (dayInfo.progress === 0) return 'l1';
+    if (dayInfo.progress < 50) return 'l2';
+    if (dayInfo.progress < 80) return 'l3';
+    if (dayInfo.progress < 100) return 'l4';
+    return 'l5';
   },
 
   /* ==================== 事件绑定 ==================== */
@@ -281,6 +397,10 @@ const Renderer = {
     // 重置
     const resetBtn = $('#reset-btn');
     if (resetBtn) resetBtn.addEventListener('click', () => this._handleReset());
+
+    // 月统计按钮
+    const statsBtn = $('#stats-btn');
+    if (statsBtn) statsBtn.addEventListener('click', () => this._showMonthStats());
 
     // 导出
     const exportBtn = $('#export-btn');

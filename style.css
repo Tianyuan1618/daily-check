@@ -725,3 +725,123 @@ body::after {
 .cal-btn:hover { border-color: var(--gold); color: var(--primary); background: #FFF; }
 .cal-btn.cal-close { background: transparent; }
 .cal-btn.cal-close:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ==================== 月统计（热力图+汇总） ==================== */
+.hm-section {
+  background: var(--cardBg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.hm-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+}
+.hm-nav-btn {
+  width: 30px; height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--cardBg);
+  color: var(--primary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: var(--font);
+  display: flex; align-items: center; justify-content: center;
+}
+.hm-nav-btn:hover { border-color: var(--gold); background: #FFF; }
+.hm-title { font-size: 1.05rem; font-weight: 600; color: var(--text); letter-spacing: 2px; }
+.hm-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--textLight);
+  padding: 0 16px;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+.hm-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  padding: 0 16px;
+}
+.hm-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  border-radius: 4px;
+  color: var(--textLight);
+  transition: all 0.15s;
+  cursor: default;
+}
+.hm-cell.l0 { background: #ECE6D8; color: #B8A88A; }
+.hm-cell.l1 { background: #F5D0D0; color: #8B2500; }
+.hm-cell.l2 { background: #F5E6C8; color: #8B6E00; }
+.hm-cell.l3 { background: #D4C5A9; color: #5C4033; }
+.hm-cell.l4 { background: #A8D5A0; color: #1B5E20; }
+.hm-cell.l5 { background: #2E7D32; color: #fff; }
+.hm-cell.empty { background: transparent; }
+.hm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  padding: 10px 16px 0;
+  font-size: 0.7rem;
+  color: var(--textLight);
+}
+.hm-legend-item { display: flex; align-items: center; gap: 3px; }
+.hm-legend-item .hm-cell { width: 12px; height: 12px; font-size: 0; }
+.hm-summary { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.hm-summary-row { display: flex; gap: 8px; }
+.hm-summary-card {
+  flex: 1;
+  text-align: center;
+  padding: 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(245, 240, 225, 0.3);
+}
+.hm-num { display: block; font-size: 1.3rem; font-weight: 700; color: var(--primary); letter-spacing: 1px; }
+.hm-label { display: block; font-size: 0.7rem; color: var(--textLight); margin-top: 2px; letter-spacing: 1px; }
+.hm-cats { padding: 0 16px 14px; }
+.hm-cat-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
+.hm-cat-icon { font-size: 1rem; width: 20px; text-align: center; }
+.hm-cat-name { font-size: 0.85rem; color: var(--text); width: 50px; letter-spacing: 1px; }
+.hm-bar-bg { flex: 1; height: 14px; background: #ECE6D8; border-radius: 7px; overflow: hidden; }
+.hm-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--success)); border-radius: 7px; transition: width 0.5s ease; min-width: 4px; }
+.hm-cat-pct { font-size: 0.8rem; color: var(--textLight); width: 36px; text-align: right; }
+.hm-back-btn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 0 16px 14px;
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--cardBg);
+  font-family: var(--font);
+  font-size: 0.85rem;
+  color: var(--textLight);
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.hm-back-btn:hover { border-color: var(--gold); color: var(--primary); background: #FFF; }
+
+@media (max-width: 480px) {
+  .hm-grid { gap: 2px; padding: 0 10px; }
+  .hm-cell { font-size: 0.65rem; }
+  .hm-summary { padding: 10px; }
+  .hm-cats { padding: 0 10px 10px; }
+  .hm-cat-name { width: 40px; font-size: 0.8rem; }
+  .hm-back-btn { width: calc(100% - 20px); margin: 0 10px 10px; }
+  .hm-legend { font-size: 0.65rem; gap: 4px; }
+}

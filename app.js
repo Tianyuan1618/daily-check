@@ -367,6 +367,110 @@ class CheckinApp {
     return Object.keys(this.data.days).sort();
   }
 
+  /**
+   * 获取某月的统计（热力图 + 汇总）
+   * @param {number} year
+   * @param {number} month - 1-12
+   * @returns {{ days: object, summary: object }}
+   */
+  getMonthStats(year, month) {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const visibleIds = this._getVisibleCategories().map(c => c.id);
+    const days = {};
+    let totalDays = 0, totalItemsAll = 0, totalDoneAll = 0;
+    const catTotals = {};
+    visibleIds.forEach(id => { catTotals[id] = { items: 0, done: 0, dayCount: 0 }; });
+
+    // 当前连续打卡（从今天往前推，只算本月范围）
+    let currentStreak = 0;
+    const today = new Date();
+    const todayKey = this._todayKey();
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const day = this.data.days[key];
+      if (!day || !day.categories) {
+        days[key] = { totalItems: 0, totalDone: 0, progress: -1, hasData: false };
+        continue;
+      }
+      let catItems = 0, catDone = 0;
+      visibleIds.forEach(id => {
+        const items = (day.categories[id] || {}).items || [];
+        const done = items.filter(i => i.done).length;
+        catItems += items.length;
+        catDone += done;
+        if (items.length > 0) {
+          catTotals[id].items += items.length;
+          catTotals[id].done += done;
+          catTotals[id].dayCount++;
+        }
+      });
+      const hasData = catItems > 0;
+      if (hasData) totalDays++;
+      totalItemsAll += catItems;
+      totalDoneAll += catDone;
+      days[key] = {
+        totalItems: catItems,
+        totalDone: catDone,
+        progress: catItems > 0 ? Math.round(catDone / catItems * 100) : -1,
+        hasData,
+      };
+    }
+
+    // 本月连续天数（从今天往前在本月范围内）
+    for (let i = 0; ; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = this._formatDateKey(d);
+      if (key < `${year}-${String(month).padStart(2, '0')}-01` || key > `${year}-${String(month).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`) break;
+      const dayInfo = days[key];
+      if (!dayInfo || !dayInfo.hasData) break;
+      currentStreak++;
+    }
+
+    // 本月最长连续
+    let bestStreak = 0, curStreak = 0;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      if (days[key] && days[key].hasData) {
+        curStreak++;
+        bestStreak = Math.max(bestStreak, curStreak);
+      } else {
+        curStreak = 0;
+      }
+    }
+
+    // 分类完成率
+    const categoryStats = {};
+    visibleIds.forEach(id => {
+      const t = catTotals[id];
+      categoryStats[id] = {
+        totalDays: t.dayCount,
+        avgCompletion: t.items > 0 ? Math.round(t.done / t.items * 100) : 0,
+      };
+      // 加上分类名称和图标
+      const cat = this._getAllCategories().find(c => c.id === id);
+      if (cat) {
+        categoryStats[id].name = cat.name;
+        categoryStats[id].icon = cat.icon;
+      }
+    });
+
+    return {
+      days,
+      summary: {
+        year,
+        month,
+        monthDays: daysInMonth,
+        totalDays,
+        avgCompletion: totalItemsAll > 0 ? Math.round(totalDoneAll / totalItemsAll * 100) : 0,
+        currentStreak,
+        bestStreak,
+        categoryStats,
+      },
+    };
+  }
+
   // 查看历史（只读，不创建数据）
   getHistory(dateKey) {
     return this.getDayReadOnly(dateKey);
