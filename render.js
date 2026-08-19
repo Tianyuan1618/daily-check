@@ -60,14 +60,24 @@ const Renderer = {
         ${isToday ? '<span class="nav-badge">今天</span>' : '<span class="nav-badge ' + (info.solarDay > new Date().getDate() ? 'future' : 'past') + '">' + (info.solarDay > new Date().getDate() ? '未来' : '历史') + '</span>'}
       </div>
       <button class="nav-btn" id="next-day">›</button>
+      <button class="nav-btn nav-cal-btn" id="cal-btn" title="选择日期">📅</button>
       ${isToday ? '' : '<button class="nav-today-btn" id="go-today-btn">📅 今天</button>'}
     `;
     const prev = $('#prev-day');
     const next = $('#next-day');
     const goToday = $('#go-today-btn');
+    const calBtn = $('#cal-btn');
     if (prev) prev.addEventListener('click', () => this._shiftDate(-1));
     if (next) next.addEventListener('click', () => this._shiftDate(1));
     if (goToday) goToday.addEventListener('click', () => { this.currentDateKey = null; this.render(); });
+    if (calBtn) calBtn.addEventListener('click', () => {
+      const picker = $('#date-picker');
+      if (picker) {
+        picker.value = this.currentDateKey || this._todayKey();
+        if (picker.showPicker) picker.showPicker();
+        else picker.click();
+      }
+    });
   },
 
   _shiftDate(delta) {
@@ -292,6 +302,15 @@ const Renderer = {
     // 管理组按钮
     const manageBtn = $('#manage-btn');
     if (manageBtn) manageBtn.addEventListener('click', () => this._handleManageCategories());
+
+    // 日期选择器变化
+    const picker = $('#date-picker');
+    if (picker) picker.addEventListener('change', () => {
+      if (picker.value) {
+        this.currentDateKey = picker.value;
+        this.render();
+      }
+    });
   },
 
   /* ==================== 组管理 ==================== */

@@ -220,6 +220,7 @@ body::after {
   letter-spacing: 1px;
 }
 .nav-today-btn:hover { background: linear-gradient(135deg, #FFF5EE, #FFF); border-color: var(--primary); transform: scale(1.03); }
+.nav-cal-btn { font-size: 0.85rem; }
 .nav-badge {
   display: inline-block;
   margin-left: 6px;
