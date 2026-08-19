@@ -30,14 +30,26 @@ class CheckinApp {
   }
 
   _initData() {
-    return { version: 2, created: new Date().toISOString(), days: {} };
+    // defaults: 用户自定义的每日默认条目（未设置时为 null，用 config 里的）
+    return { version: 3, created: new Date().toISOString(), defaults: null, days: {} };
+  }
+
+  /**
+   * 获取某分类的默认条目（优先用户自定义，否则用 config）
+   */
+  _getCategoryDefaults(catId) {
+    if (this.data.defaults && this.data.defaults[catId] && this.data.defaults[catId].length > 0) {
+      return this.data.defaults[catId];
+    }
+    const cat = this.categories.find(c => c.id === catId);
+    return (cat && cat.defaults) || [];
   }
 
   _emptyDay() {
     const categories = {};
     this.categories.forEach(cat => {
       categories[cat.id] = {
-        items: (cat.defaults || []).map((text, i) => ({
+        items: this._getCategoryDefaults(cat.id).map((text, i) => ({
           id: 'dft_' + i,
           text,
           done: false,
@@ -73,13 +85,13 @@ class CheckinApp {
     return this.getDay(this._todayKey());
   }
 
-  // 兼容旧数据：确保每个分类有 items 数组，并按最新 config 同步
+  // 兼容旧数据：确保每个分类有 items 数组，并按最新默认值同步
   _migrateDay(day) {
     if (!day.categories) {
       day.categories = {};
       this.categories.forEach(cat => {
         day.categories[cat.id] = {
-          items: (cat.defaults || []).map((text, i) => ({
+          items: this._getCategoryDefaults(cat.id).map((text, i) => ({
             id: 'dft_' + i,
             text,
             done: false,
@@ -95,9 +107,10 @@ class CheckinApp {
         if (!catData.items) {
           catData.items = [];
         }
-        // 如果分类没有任何条目，用当前 config 默认值填充
-        if (catData.items.length === 0 && cat.defaults) {
-          catData.items = cat.defaults.map((text, i) => ({
+        // 如果分类没有任何条目，用当前默认值填充（优先用户自定义）
+        const defaults = this._getCategoryDefaults(cat.id);
+        if (catData.items.length === 0 && defaults.length > 0) {
+          catData.items = defaults.map((text, i) => ({
             id: 'dft_' + i,
             text,
             done: false,
@@ -184,13 +197,46 @@ class CheckinApp {
     return true;
   }
 
-  /* ==================== 重置 ==================== */
+  /* ==================== 重置与默认值 ==================== */
 
   resetToday() {
     const key = this._todayKey();
     this.data.days[key] = this._emptyDay();
     this.save();
     return this.getDay(key);
+  }
+
+  /**
+   * 把某天的打卡条目保存为每日默认值
+   * @param {string} dateKey - 日期，默认今天
+   * @returns {{success: boolean, defaults?: object}}
+   */
+  saveCurrentAsDefaults(dateKey) {
+    const key = dateKey || this._todayKey();
+    const day = this.data.days[key];
+    if (!day || !day.categories) return { success: false, error: '没有找到当天的数据' };
+
+    const defaults = {};
+    this.categories.forEach(cat => {
+      const items = (day.categories[cat.id] && day.categories[cat.id].items) || [];
+      // 只保存有条目的文本（去掉空白条目）
+      defaults[cat.id] = items.map(i => i.text).filter(t => t && t.trim());
+    });
+
+    this.data.defaults = defaults;
+    this.save();
+    return { success: true, defaults };
+  }
+
+  /**
+   * 获取当前生效的默认条目（用户自定义优先）
+   */
+  getDefaultItems() {
+    const result = {};
+    this.categories.forEach(cat => {
+      result[cat.id] = this._getCategoryDefaults(cat.id);
+    });
+    return result;
   }
 
   /* ==================== 历史与统计 ==================== */

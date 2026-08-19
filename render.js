@@ -201,9 +201,9 @@ const Renderer = {
     const importBtn = $('#import-btn');
     if (importBtn) importBtn.addEventListener('click', () => this._handleImport());
 
-    // 保存图片
-    const saveImgBtn = $('#save-img-btn');
-    if (saveImgBtn) saveImgBtn.addEventListener('click', () => this._handleSaveImage());
+    // 保存为默认值按钮
+    const saveDefaultsBtn = $('#save-defaults-btn');
+    if (saveDefaultsBtn) saveDefaultsBtn.addEventListener('click', () => this._handleSaveDefaults());
   },
 
   _handleReset() {
@@ -242,50 +242,19 @@ const Renderer = {
     input.click();
   },
 
-  async _handleSaveImage() {
-    const saveBtn = $('#save-img-btn');
-    const originalText = saveBtn.textContent;
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    // ===== 移动端：提示截图保存 =====
-    if (isMobile) {
-      this._showModal(
-        '📱 请使用手机截图',
-        '手机上暂时不支持一键保存图片。\n\n请使用手机截图功能：\n• Android：电源键 + 音量减键\n• iPhone：侧边键 + 音量加键\n\n截图后可在相册中查看和分享。'
-      );
-      return;
-    }
-
-    // ===== 桌面端：html2canvas 截图下载 =====
-    if (typeof html2canvas !== 'undefined') {
-      try {
-        saveBtn.textContent = '⏳ 生成中…';
-        saveBtn.disabled = true;
-        document.body.classList.add('capturing');
-        const container = $('.container');
-        if (!container) { saveBtn.textContent = originalText; saveBtn.disabled = false; return; }
-        await new Promise(r => setTimeout(r, 200));
-        const canvas = await html2canvas(container, {
-          backgroundColor: '#F5F0E1', scale: 1, logging: false, useCORS: false,
-        });
-        document.body.classList.remove('capturing');
-        const dataUrl = canvas.toDataURL('image/png');
-        const fileName = '每日打卡_' + new Date().toISOString().slice(0, 10) + '.png';
-        const link = document.createElement('a');
-        link.href = dataUrl; link.download = fileName;
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        saveBtn.textContent = '✅ 已保存'; setTimeout(() => { saveBtn.textContent = originalText; }, 2000);
-        saveBtn.disabled = false;
-        return;
-      } catch (e) {
-        document.body.classList.remove('capturing');
-        saveBtn.disabled = false;
-        this._showModal('保存失败', '生成图片失败，请用浏览器截图功能保存。');
-        return;
+  _handleSaveDefaults() {
+    this._showModal(
+      '保存为默认值',
+      '将今天的打卡条目保存为每日默认值？\n\n以后每天打开、重置时，会自动使用这些条目。',
+      () => {
+        const result = checkinApp.saveCurrentAsDefaults();
+        if (result.success) {
+          this._showModal('✅ 已保存默认值', '每日默认值已更新。\n\n明天开始，打卡会自动带上这些条目。');
+        } else {
+          this._showModal('保存失败', result.error || '请先添加一些打卡条目。');
+        }
       }
-    }
-
-    this._showModal('保存失败', '图片库未加载，请刷新后重试。');
+    );
   },
 
   _showModal(title, text, onConfirm) {
