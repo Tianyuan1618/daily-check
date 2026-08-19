@@ -71,12 +71,7 @@ const Renderer = {
     if (next) next.addEventListener('click', () => this._shiftDate(1));
     if (goToday) goToday.addEventListener('click', () => { this.currentDateKey = null; this.render(); });
     if (calBtn) calBtn.addEventListener('click', () => {
-      const picker = $('#date-picker');
-      if (picker) {
-        picker.value = this.currentDateKey || this._todayKey();
-        if (picker.showPicker) picker.showPicker();
-        else picker.click();
-      }
+      this._showCalendar();
     });
   },
 
@@ -483,6 +478,102 @@ const Renderer = {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  },
+
+  /* ==================== 日历弹窗 ==================== */
+
+  _calendarYear: null,
+  _calendarMonth: null,
+
+  _showCalendar() {
+    const overlay = $('#calendar-overlay');
+    if (!overlay) return;
+    // 从当前查看日期或今天初始化
+    const base = this.currentDateKey || this._todayKey();
+    const d = new Date(base + 'T12:00:00');
+    this._calendarYear = d.getFullYear();
+    this._calendarMonth = d.getMonth() + 1;
+    this._renderCalendarMonth(this._calendarYear, this._calendarMonth);
+    overlay.classList.add('show');
+    this._bindCalendarEvents(overlay);
+  },
+
+  _hideCalendar() {
+    const overlay = $('#calendar-overlay');
+    if (overlay) overlay.classList.remove('show');
+  },
+
+  _renderCalendarMonth(year, month) {
+    const title = $('#cal-title');
+    const days = $('#cal-days');
+    if (!title || !days) return;
+    title.textContent = year + '年 ' + month + '月';
+
+    const todayKey = this._todayKey();
+    const currentKey = this.currentDateKey || todayKey;
+
+    // 当月第一天是星期几（0=日，1=一…6=六）
+    const firstDay = new Date(year, month - 1, 1).getDay();
+    // 当月天数
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    let html = '';
+    // 空白格（星期一开头，firstDay=0(日) → 6空格，firstDay=1(一) → 0空格）
+    const emptyStart = firstDay === 0 ? 6 : firstDay - 1;
+    for (let i = 0; i < emptyStart; i++) html += '<span class="cal-day empty"></span>';
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = year + '-' + String(month).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      const isToday = key === todayKey;
+      const isSelected = key === currentKey;
+      const classes = 'cal-day' + (isToday ? ' today' : '') + (isSelected ? ' selected' : '');
+      html += '<span class="' + classes + '" data-year="' + year + '" data-month="' + month + '" data-day="' + d + '">' + d + '</span>';
+    }
+    days.innerHTML = html;
+  },
+
+  _bindCalendarEvents(overlay) {
+    // 点击遮罩关闭
+    overlay.onclick = (e) => { if (e.target === overlay) this._hideCalendar(); };
+
+    // 上月/下月
+    const prev = $('#cal-prev');
+    const next = $('#cal-next');
+    if (prev) prev.onclick = () => {
+      this._calendarMonth--;
+      if (this._calendarMonth < 1) { this._calendarMonth = 12; this._calendarYear--; }
+      this._renderCalendarMonth(this._calendarYear, this._calendarMonth);
+    };
+    if (next) next.onclick = () => {
+      this._calendarMonth++;
+      if (this._calendarMonth > 12) { this._calendarMonth = 1; this._calendarYear++; }
+      this._renderCalendarMonth(this._calendarYear, this._calendarMonth);
+    };
+
+    // 点击日期
+    const days = $('#cal-days');
+    if (days) days.onclick = (e) => {
+      const dayEl = e.target.closest('.cal-day:not(.empty)');
+      if (!dayEl) return;
+      const y = parseInt(dayEl.dataset.year);
+      const m = parseInt(dayEl.dataset.month);
+      const d = parseInt(dayEl.dataset.day);
+      this.currentDateKey = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      this._hideCalendar();
+      this.render();
+    };
+
+    // 今天按钮
+    const todayBtn = $('#cal-today');
+    if (todayBtn) todayBtn.onclick = () => {
+      this.currentDateKey = null;
+      this._hideCalendar();
+      this.render();
+    };
+
+    // 取消
+    const close = $('#cal-close');
+    if (close) close.onclick = () => this._hideCalendar();
   },
 };
 

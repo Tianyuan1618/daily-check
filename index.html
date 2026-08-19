@@ -63,6 +63,25 @@
   <!-- 日期选择器（隐藏，触发时弹出系统日历） -->
   <input type="date" id="date-picker" style="position:fixed;opacity:0;pointer-events:none;z-index:-1;width:1px;height:1px;" aria-hidden="true">
 
+  <!-- 日历弹窗 -->
+  <div id="calendar-overlay" class="cal-overlay">
+    <div class="cal-box" id="cal-box">
+      <div class="cal-header">
+        <button class="cal-nav" id="cal-prev">‹</button>
+        <span class="cal-title" id="cal-title">2026年 8月</span>
+        <button class="cal-nav" id="cal-next">›</button>
+      </div>
+      <div class="cal-weekdays">
+        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+      </div>
+      <div class="cal-days" id="cal-days"></div>
+      <div class="cal-footer">
+        <button class="cal-btn" id="cal-today">今天</button>
+        <button class="cal-btn cal-close" id="cal-close">取消</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 确认弹窗 -->
   <div id="modal-overlay" class="modal-overlay">
     <div class="modal-box">
