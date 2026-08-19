@@ -49,8 +49,8 @@ const GERMAN_FIXED_HOLIDAYS = {
 
 // 部分州才有的固定假期
 const GERMAN_STATE_HOLIDAYS = {
-  '1-6':   { name: '三王节', note: '部分州' },
-  '11-1':  { name: '万圣节', note: '部分州' },
+  '1-6':   { name: '三王节', note: 'BW, BY, ST' },
+  '11-1':  { name: '万圣节', note: 'BW, BY, NW, RP, SL' },
 };
 
 /**
@@ -99,6 +99,7 @@ function getGermanHolidays(year, month, day) {
     [1]:  { name: '复活节周一', note: '' },
     [39]: { name: '耶稣升天节', note: '' },
     [50]: { name: '圣灵降临节周一', note: '' },
+    [60]: { name: '圣体节', note: 'BW, BY, HE, NW, RP, SL' },
   };
   const mv = movable[diff];
   if (mv) result.push({ name: mv.name, note: mv.note });

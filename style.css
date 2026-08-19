@@ -206,6 +206,20 @@ body::after {
 .nav-date { flex: 1; text-align: center; }
 .nav-date-main { font-size: 1rem; font-weight: 600; color: var(--text); letter-spacing: 1px; }
 .nav-date-week { font-size: 0.8rem; color: var(--textLight); margin-left: 6px; }
+.nav-today-btn {
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--cardBg), #FFF5EE);
+  font-family: var(--font);
+  font-size: 0.8rem;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: var(--primary);
+  white-space: nowrap;
+  letter-spacing: 1px;
+}
+.nav-today-btn:hover { background: linear-gradient(135deg, #FFF5EE, #FFF); border-color: var(--primary); transform: scale(1.03); }
 .nav-badge {
   display: inline-block;
   margin-left: 6px;

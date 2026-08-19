@@ -51,20 +51,23 @@ const Renderer = {
   _renderDateNav(info) {
     const nav = $('#date-nav');
     if (!nav) return;
+    const isToday = this._isToday();
     nav.innerHTML = `
       <button class="nav-btn" id="prev-day">‹</button>
       <div class="nav-date">
         <span class="nav-date-main">${info.dateStr}</span>
         <span class="nav-date-week">${info.weekDay}</span>
-        ${this._isToday() ? '<span class="nav-badge">今天</span>' : (info.solarDay > new Date().getDate() ? '<span class="nav-badge future">未来</span>' : '<span class="nav-badge past">历史</span>')}
+        ${isToday ? '<span class="nav-badge">今天</span>' : '<span class="nav-badge ' + (info.solarDay > new Date().getDate() ? 'future' : 'past') + '">' + (info.solarDay > new Date().getDate() ? '未来' : '历史') + '</span>'}
       </div>
       <button class="nav-btn" id="next-day">›</button>
+      ${isToday ? '' : '<button class="nav-today-btn" id="go-today-btn">📅 今天</button>'}
     `;
-    // 事件绑定（每次重建后重新绑定）
     const prev = $('#prev-day');
     const next = $('#next-day');
+    const goToday = $('#go-today-btn');
     if (prev) prev.addEventListener('click', () => this._shiftDate(-1));
     if (next) next.addEventListener('click', () => this._shiftDate(1));
+    if (goToday) goToday.addEventListener('click', () => { this.currentDateKey = null; this.render(); });
   },
 
   _shiftDate(delta) {
