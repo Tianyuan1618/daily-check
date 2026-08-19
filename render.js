@@ -296,8 +296,8 @@ const Renderer = {
       </div>
     `;
 
-    /* 统计热力图单元格点击 */
-    container.addEventListener('click', (e) => {
+    /* 统计热力图单元格点击（用 onclick 单次赋值，避免累积） */
+    container.onclick = (e) => {
       const cell = e.target.closest('.hm-cell:not(.empty)');
       if (!cell) return;
       const y = this._statsYear;
@@ -306,7 +306,7 @@ const Renderer = {
       if (!d) return;
       this.currentDateKey = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
       this._hideMonthStats();
-    });
+    };
     const prev = $('#hm-prev');
     const next = $('#hm-next');
     const back = $('#hm-back-btn');
