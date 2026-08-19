@@ -177,22 +177,60 @@ body::after {
 .divider { width: 60px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 12px auto; }
 .lunar-date { font-size: 1rem; color: var(--textLight); letter-spacing: 1px; line-height: 1.6; }
 .lunar-date .gan-zhi { color: var(--primary); font-weight: 600; }
-.festival { display: inline-block; margin-top: 8px; padding: 2px 14px; background: linear-gradient(135deg, var(--accent), #E85D3A); color: #fff; border-radius: 20px; font-size: 0.9rem; letter-spacing: 2px; font-weight: 500; }
+/* ==================== 日期导航 ==================== */
+.date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--cardBg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+.nav-btn {
+  width: 34px; height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--cardBg);
+  color: var(--primary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font);
+}
+.nav-btn:hover { border-color: var(--gold); background: #FFF; color: var(--primary); transform: scale(1.05); }
+.nav-date { flex: 1; text-align: center; }
+.nav-date-main { font-size: 1rem; font-weight: 600; color: var(--text); letter-spacing: 1px; }
+.nav-date-week { font-size: 0.8rem; color: var(--textLight); margin-left: 6px; }
+.nav-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  background: linear-gradient(135deg, var(--accent), #E85D3A);
+  color: #fff;
+  vertical-align: middle;
+}
+.nav-badge.past { background: linear-gradient(135deg, var(--gold), #D4A574); }
+.nav-badge.future { background: linear-gradient(135deg, #7A9E7E, #2E7D32); }
 
-/* ==================== 黄历 ==================== */
-.almanac { display: flex; gap: 1px; margin-top: 14px; background: var(--border); border-radius: 8px; overflow: hidden; }
-.almanac-col { flex: 1; padding: 10px 8px; text-align: center; background: var(--cardBg); }
-.almanac-col:first-child { background: linear-gradient(135deg, #FFF5EE, var(--cardBg)); }
-.almanac-label { font-size: 0.75rem; color: var(--textLight); letter-spacing: 2px; margin-bottom: 4px; }
-.almanac-value { font-size: 1.1rem; font-weight: 600; color: var(--primary); letter-spacing: 1px; }
-.almanac-value.luck-吉 { color: var(--success); }
-.almanac-value.luck-凶 { color: var(--accent); }
-.almanac-value.luck-平 { color: var(--gold); }
-.almanac-items { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin-top: 4px; }
-.almanac-tag { display: inline-block; padding: 1px 8px; font-size: 0.75rem; border-radius: 10px; background: #F5F0E1; color: var(--textLight); letter-spacing: 1px; }
-.almanac-tag.yi { background: #E8F5E9; color: #2E7D32; }
-.almanac-tag.ji { background: #FFF3E0; color: #BF360C; }
-.xiu-display { font-size: 0.8rem; color: var(--textLight); margin-top: 4px; }
+/* ==================== 头部标签（节气/节日/假期） ==================== */
+.head-tags { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.head-tag {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+.head-tag.jieqi { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+.head-tag.festival { background: linear-gradient(135deg, var(--accent), #E85D3A); color: #fff; font-weight: 500; }
+.head-tag.de { background: #FFF8E1; color: #8B6E00; border: 1px solid #E6CE8A; }
 
 /* ==================== 进度条 ==================== */
 .progress-section { margin-top: 16px; }
@@ -331,6 +369,54 @@ body::after {
 
 .add-item-btn:hover { border-color: var(--success); border-style: solid; color: var(--success); background: rgba(46, 125, 50, 0.05); }
 
+/* 分类编辑按钮 */
+.cat-edit-btn {
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: all 0.3s;
+  padding: 2px;
+}
+.category-header:hover .cat-edit-btn { opacity: 0.8; }
+.cat-edit-btn:hover { opacity: 1 !important; transform: scale(1.15); }
+
+/* 只读 checkbox（历史/未来日期） */
+.item-checkbox-static {
+  width: 20px; height: 20px; min-width: 20px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  background: var(--cardBg);
+}
+.item-checkbox-static.checked { background: var(--success); border-color: var(--success); }
+
+/* 添加新组 */
+.add-category-row { padding: 14px 20px; text-align: center; border-top: 1px dashed var(--border); }
+.add-cat-btn {
+  width: 100%;
+  padding: 9px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--textLight);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.add-cat-btn:hover { border-color: var(--gold); color: var(--primary); background: rgba(201, 169, 110, 0.06); }
+
+/* 空状态提示 */
+.empty-tip {
+  padding: 30px 20px;
+  text-align: center;
+  color: var(--textLight);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
 /* ==================== 操作按钮 ==================== */
 .actions {
   margin-top: 16px;
@@ -412,6 +498,53 @@ body::after {
 .modal-btn.cancel { background: var(--cardBg); color: var(--textLight); }
 .modal-btn.cancel:hover { border-color: var(--gold); color: var(--text); }
 
+/* 表单输入框（弹窗内） */
+.modal-input {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  color: var(--text);
+  background: rgba(245, 240, 225, 0.4);
+  outline: none;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.modal-input:focus { border-color: var(--gold); background: #fff; }
+.modal-hint { font-size: 0.8rem; color: var(--gold); margin: 4px 0 10px; }
+
+/* 管理组弹窗 */
+.mgmt-list { max-height: 320px; overflow-y: auto; margin-bottom: 16px; text-align: left; }
+.mgmt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px dashed rgba(212, 197, 169, 0.4);
+}
+.mgmt-row:last-child { border-bottom: none; }
+.mgmt-icon { font-size: 1.1rem; }
+.mgmt-name { flex: 1; font-size: 0.95rem; color: var(--text); letter-spacing: 1px; }
+.mgmt-name.mgmt-hidden { color: var(--textLight); text-decoration: line-through; }
+.mgmt-btn {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--cardBg);
+  font-family: var(--font);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: var(--textLight);
+}
+.mgmt-btn:hover { border-color: var(--gold); color: var(--primary); }
+.mgmt-btn.hide:hover { border-color: var(--accent); color: var(--accent); }
+.mgmt-btn.show:hover { border-color: var(--success); color: var(--success); }
+
 /* ==================== 响应式（手机端） ==================== */
 @media (max-width: 480px) {
   body { padding: 8px; }
@@ -421,18 +554,18 @@ body::after {
   .app-title { font-size: 1.5rem; letter-spacing: 4px; }
   .app-subtitle { font-size: 0.8rem; letter-spacing: 6px; margin-bottom: 14px; }
 
-  /* 日期卡片压缩，黄历两行两列 */
+  /* 日期导航压缩 */
+  .date-nav { padding: 6px 8px; margin-bottom: 10px; }
+  .nav-btn { width: 30px; height: 30px; font-size: 1rem; }
+  .nav-date-main { font-size: 0.9rem; }
+  .nav-date-week { font-size: 0.7rem; margin-left: 4px; }
+
+  /* 日期卡片压缩 */
   .date-card { padding: 14px 12px; }
   .solar-date { font-size: 1.25rem; }
   .week-day { font-size: 1rem; }
   .lunar-date { font-size: 0.9rem; }
-  .festival { font-size: 0.8rem; padding: 2px 10px; }
-  .almanac { flex-wrap: wrap; gap: 1px; }
-  .almanac-col { flex: 1 1 45%; padding: 8px 6px; }
-  .almanac-label { font-size: 0.7rem; }
-  .almanac-value { font-size: 1rem; }
-  .almanac-tag { font-size: 0.65rem; padding: 1px 5px; }
-  .almanac-items { gap: 2px; }
+  .head-tag { font-size: 0.72rem; padding: 2px 9px; }
 
   /* 打卡区压缩 */
   .checklist-section { margin-top: 14px; }
@@ -453,9 +586,10 @@ body::after {
   .progress-section { margin-top: 12px; }
   .progress-header { font-size: 0.8rem; }
 
-  /* 四个按钮改成两行两列，缩小 */
+  /* 五个按钮两行两列 + 末行全宽，缩小 */
   .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
   .action-btn { padding: 9px 4px; font-size: 0.78rem; letter-spacing: 1px; min-width: 0; }
+  .action-btn:last-child { grid-column: 1 / -1; }
 
   /* 统计区压缩 */
   .stats-section { flex-wrap: wrap; padding: 12px 8px; }
@@ -470,15 +604,6 @@ body::after {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes stampIn { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
 .item-checkbox.checked { animation: stampIn 0.3s ease; }
-
-/* 截图时隐藏装饰，防止 html2canvas 崩溃 */
-body.capturing::before,
-body.capturing::after {
-  display: none !important;
-}
-body.capturing {
-  background-image: none !important;
-}
 
 /* ==================== 滚动条 ==================== */
 ::-webkit-scrollbar { width: 6px; }

@@ -2,6 +2,7 @@
  * ============================================================
  *  app.js — 打卡业务逻辑模块
  *  每个分类下有多个条目（items），每个条目可单独打勾
+ *  分类支持：改名、改图标、隐藏（不删数据）、添加新组
  * ============================================================
  */
 
@@ -30,8 +31,127 @@ class CheckinApp {
   }
 
   _initData() {
-    // defaults: 用户自定义的每日默认条目（未设置时为 null，用 config 里的）
-    return { version: 3, created: new Date().toISOString(), defaults: null, days: {} };
+    return {
+      version: 4,
+      created: new Date().toISOString(),
+      defaults: null,          // 用户自定义的每日默认条目 { catId: [text...] }
+      categoryEdits: {},       // 用户对默认分类的修改 { catId: {name, icon, hidden} }
+      customCategories: [],    // 用户添加的新分类 [{id, name, icon, hidden}]
+      days: {},
+    };
+  }
+
+  save() {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+    } catch (e) {
+      console.error('保存失败:', e);
+    }
+  }
+
+  /* ==================== 分类管理 ==================== */
+
+  /**
+   * 获取全部分类（默认分类 + 用户自定义，应用了用户的改名/改图标/隐藏）
+   */
+  _getAllCategories() {
+    const list = [];
+    this.categories.forEach(c => {
+      const edit = (this.data.categoryEdits && this.data.categoryEdits[c.id]) || {};
+      list.push({
+        ...c,
+        name: edit.name || c.name,
+        icon: edit.icon || c.icon,
+        hidden: edit.hidden === true,
+        isCustom: false,
+      });
+    });
+    (this.data.customCategories || []).forEach(ck => {
+      list.push({
+        ...ck,
+        id: ck.id,
+        name: ck.name,
+        icon: ck.icon,
+        hidden: ck.hidden === true,
+        isCustom: true,
+        defaults: [],
+      });
+    });
+    return list;
+  }
+
+  /**
+   * 获取可见分类（隐藏的过滤掉）
+   */
+  _getVisibleCategories() {
+    return this._getAllCategories().filter(c => !c.hidden);
+  }
+
+  /**
+   * 添加新分类
+   */
+  addCategory(name, icon) {
+    name = (name || '').trim();
+    if (!name) return { success: false, error: '分类名称不能为空' };
+    if (!this.data.customCategories) this.data.customCategories = [];
+    const id = 'cat_' + Date.now();
+    this.data.customCategories.push({ id, name, icon: icon || '📌', hidden: false });
+    this.save();
+    return { success: true, id };
+  }
+
+  /**
+   * 修改分类的名称/图标
+   */
+  updateCategoryMeta(catId, { name, icon }) {
+    const cat = this._getBaseCategory(catId);
+    if (cat) {
+      // 默认分类：记录到 categoryEdits
+      if (!this.data.categoryEdits) this.data.categoryEdits = {};
+      if (!this.data.categoryEdits[catId]) this.data.categoryEdits[catId] = {};
+      if (name) this.data.categoryEdits[catId].name = name.trim();
+      if (icon) this.data.categoryEdits[catId].icon = icon;
+      this.save();
+      return { success: true };
+    }
+    // 自定义分类
+    const custom = (this.data.customCategories || []).find(c => c.id === catId);
+    if (custom) {
+      if (name) custom.name = name.trim();
+      if (icon) custom.icon = icon;
+      this.save();
+      return { success: true };
+    }
+    return { success: false, error: '分类不存在' };
+  }
+
+  /**
+   * 隐藏/恢复分类（数据保留，仅不显示）
+   */
+  toggleCategoryHidden(catId) {
+    const base = this._getBaseCategory(catId);
+    let hidden;
+    if (base) {
+      if (!this.data.categoryEdits) this.data.categoryEdits = {};
+      if (!this.data.categoryEdits[catId]) this.data.categoryEdits[catId] = {};
+      const cur = this.data.categoryEdits[catId].hidden === true;
+      hidden = !cur;
+      this.data.categoryEdits[catId].hidden = hidden;
+      this.save();
+      return { success: true, hidden };
+    }
+    const custom = (this.data.customCategories || []).find(c => c.id === catId);
+    if (custom) {
+      hidden = !(custom.hidden === true);
+      custom.hidden = hidden;
+      this.save();
+      return { success: true, hidden };
+    }
+    return { success: false, error: '分类不存在' };
+  }
+
+  _getBaseCategory(catId) {
+    return this.categories.find(c => c.id === catId);
   }
 
   /**
@@ -41,13 +161,13 @@ class CheckinApp {
     if (this.data.defaults && this.data.defaults[catId] && this.data.defaults[catId].length > 0) {
       return this.data.defaults[catId];
     }
-    const cat = this.categories.find(c => c.id === catId);
+    const cat = this._getBaseCategory(catId);
     return (cat && cat.defaults) || [];
   }
 
   _emptyDay() {
     const categories = {};
-    this.categories.forEach(cat => {
+    this._getAllCategories().forEach(cat => {
       categories[cat.id] = {
         items: this._getCategoryDefaults(cat.id).map((text, i) => ({
           id: 'dft_' + i,
@@ -59,26 +179,30 @@ class CheckinApp {
     return { categories };
   }
 
-  save() {
-    try {
-      localStorage.setItem(this.storageKey, JSON.stringify(this.data));
-    } catch (e) {
-      console.error('保存失败:', e);
-    }
-  }
-
   /* ==================== 每日数据管理 ==================== */
 
+  /**
+   * 获取某天数据（不存在则创建——用于当前日期打卡操作）
+   */
   getDay(dateKey) {
     const key = dateKey || this._todayKey();
     if (!this.data.days[key]) {
       this.data.days[key] = this._emptyDay();
       this.save();
     }
-    // 兼容旧数据格式
     const day = this.data.days[key];
     this._migrateDay(day);
     return this._computeDayStats(key, day);
+  }
+
+  /**
+   * 只读获取某天数据（不存在返回 null，不创建——用于查看历史/未来）
+   */
+  getDayReadOnly(dateKey) {
+    const day = this.data.days[dateKey];
+    if (!day) return null;
+    this._migrateDay(day);
+    return this._computeDayStats(dateKey, day);
   }
 
   getToday() {
@@ -89,7 +213,7 @@ class CheckinApp {
   _migrateDay(day) {
     if (!day.categories) {
       day.categories = {};
-      this.categories.forEach(cat => {
+      this._getAllCategories().forEach(cat => {
         day.categories[cat.id] = {
           items: this._getCategoryDefaults(cat.id).map((text, i) => ({
             id: 'dft_' + i,
@@ -99,7 +223,7 @@ class CheckinApp {
         };
       });
     } else {
-      this.categories.forEach(cat => {
+      this._getAllCategories().forEach(cat => {
         if (!day.categories[cat.id]) {
           day.categories[cat.id] = { items: [] };
         }
@@ -121,7 +245,7 @@ class CheckinApp {
   }
 
   _computeDayStats(key, day) {
-    const cats = this.categories.map(cat => {
+    const cats = this._getVisibleCategories().map(cat => {
       const catData = day.categories[cat.id] || { items: [] };
       const items = catData.items || [];
       const done = items.filter(i => i.done).length;
@@ -151,9 +275,10 @@ class CheckinApp {
     text = text.trim();
     if (!text) return null;
     this.getDay(key); // 确保数据存在
-    const items = this.data.days[key].categories[categoryId].items;
+    const cat = this.data.days[key].categories[categoryId];
+    if (!cat) return null;
     const newItem = { id: Date.now() + '_' + Math.random().toString(36).slice(2, 6), text, done: false };
-    items.push(newItem);
+    cat.items.push(newItem);
     this.save();
     return newItem;
   }
@@ -208,8 +333,6 @@ class CheckinApp {
 
   /**
    * 把某天的打卡条目保存为每日默认值
-   * @param {string} dateKey - 日期，默认今天
-   * @returns {{success: boolean, defaults?: object}}
    */
   saveCurrentAsDefaults(dateKey) {
     const key = dateKey || this._todayKey();
@@ -217,9 +340,8 @@ class CheckinApp {
     if (!day || !day.categories) return { success: false, error: '没有找到当天的数据' };
 
     const defaults = {};
-    this.categories.forEach(cat => {
+    this._getAllCategories().forEach(cat => {
       const items = (day.categories[cat.id] && day.categories[cat.id].items) || [];
-      // 只保存有条目的文本（去掉空白条目）
       defaults[cat.id] = items.map(i => i.text).filter(t => t && t.trim());
     });
 
@@ -233,7 +355,7 @@ class CheckinApp {
    */
   getDefaultItems() {
     const result = {};
-    this.categories.forEach(cat => {
+    this._getAllCategories().forEach(cat => {
       result[cat.id] = this._getCategoryDefaults(cat.id);
     });
     return result;
@@ -245,31 +367,57 @@ class CheckinApp {
     return Object.keys(this.data.days).sort();
   }
 
+  // 查看历史（只读，不创建数据）
   getHistory(dateKey) {
-    return this.getDay(dateKey);
+    return this.getDayReadOnly(dateKey);
   }
 
   getStreak() {
     let streak = 0;
     const today = new Date();
+    const visibleIds = this._getVisibleCategories().map(c => c.id);
     for (let i = 0; ; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const key = this._formatDateKey(d);
       const day = this.data.days[key];
-      if (!day) break;
-      // 检查是否有任何条目有内容（填了就算打卡）
+      if (!day || !day.categories) break;
+      // 检查可见分类是否有任何条目有内容（填了就算打卡）
       let hasContent = false;
-      if (day.categories) {
-        for (const catId of Object.keys(day.categories)) {
-          const items = day.categories[catId].items || [];
-          if (items.length > 0) { hasContent = true; break; }
-        }
+      for (const catId of visibleIds) {
+        const items = (day.categories[catId] || {}).items || [];
+        if (items.length > 0) { hasContent = true; break; }
       }
       if (!hasContent) break;
       streak++;
     }
     return streak;
+  }
+
+  getStats() {
+    const allDays = Object.keys(this.data.days);
+    const totalDays = allDays.length;
+    const visibleIds = this._getVisibleCategories().map(c => c.id);
+    let totalItems = 0, totalDone = 0;
+
+    for (const key of allDays) {
+      const day = this.data.days[key];
+      if (day.categories) {
+        for (const catId of visibleIds) {
+          const items = (day.categories[catId] || {}).items || [];
+          totalItems += items.length;
+          totalDone += items.filter(i => i.done).length;
+        }
+      }
+    }
+
+    return {
+      totalDays,
+      totalItems,
+      totalDone,
+      completionRate: totalItems > 0 ? Math.round(totalDone / totalItems * 100) : 0,
+      streak: this.getStreak(),
+    };
   }
 
   exportData() {
@@ -286,31 +434,6 @@ class CheckinApp {
     } catch (e) {
       return { success: false, error: 'JSON 解析失败: ' + e.message };
     }
-  }
-
-  getStats() {
-    const allDays = Object.keys(this.data.days);
-    const totalDays = allDays.length;
-    let totalItems = 0, totalDone = 0;
-
-    for (const key of allDays) {
-      const day = this.data.days[key];
-      if (day.categories) {
-        for (const catId of Object.keys(day.categories)) {
-          const items = day.categories[catId].items || [];
-          totalItems += items.length;
-          totalDone += items.filter(i => i.done).length;
-        }
-      }
-    }
-
-    return {
-      totalDays,
-      totalItems,
-      totalDone,
-      completionRate: totalItems > 0 ? Math.round(totalDone / totalItems * 100) : 0,
-      streak: this.getStreak(),
-    };
   }
 
   /* ==================== 内部工具 ==================== */
