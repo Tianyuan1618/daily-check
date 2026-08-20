@@ -157,8 +157,8 @@ const Renderer = {
     }
 
     const isEditable = (mode === 'today' || mode === 'future');
-    const canToggle = (mode === 'today');
-    const canDelete = (mode === 'today');
+    const canToggle = (mode === 'today' || mode === 'past');
+    const canDelete = (mode === 'today' || mode === 'future');
 
     container.innerHTML = cats.map(cat => `
       <div class="category-card" data-category="${cat.id}">
@@ -382,26 +382,26 @@ const Renderer = {
         return;
       }
 
-      // 下面的操作只在"今天"有效
-      if (!this._isToday()) return;
-
+      // 打勾（今天和过去日期都可以，未来不行）
       const checkbox = e.target.closest('.item-checkbox');
       if (checkbox) {
+        if (this._isFuture()) return;
         const row = checkbox.closest('.item-row');
         const catId = row.dataset.category;
         const itemId = row.dataset.itemId;
-        checkinApp.toggleItem(catId, itemId);
+        checkinApp.toggleItem(catId, itemId, this.currentDateKey || this._todayKey());
         this.render();
         return;
       }
 
-      // 删除按钮
+      // 删除（今天和未来日期都可以，过去不行）
       const delBtn = e.target.closest('.item-del');
       if (delBtn) {
+        if (this._isPast()) return;
         const row = delBtn.closest('.item-row');
         const catId = row.dataset.category;
         const itemId = row.dataset.itemId;
-        checkinApp.removeItem(catId, itemId);
+        checkinApp.removeItem(catId, itemId, this.currentDateKey || this._todayKey());
         this.render();
         return;
       }
