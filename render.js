@@ -26,6 +26,16 @@ const Renderer = {
     return (this.currentDateKey || this._todayKey()) === this._todayKey();
   },
 
+  _isFuture() {
+    const key = this.currentDateKey || this._todayKey();
+    return key > this._todayKey();
+  },
+
+  _isPast() {
+    const key = this.currentDateKey || this._todayKey();
+    return key < this._todayKey();
+  },
+
   render() {
     const dateKey = this.currentDateKey || this._todayKey();
     const info = getDateInfo(dateKey);
@@ -48,11 +58,17 @@ const Renderer = {
 
     if (this._isToday()) {
       const dayData = checkinApp.getDay(dateKey);
-      this._renderCategories(dayData, true);
+      this._renderCategories(dayData, 'today');
+      this._renderProgress(dayData);
+    } else if (this._isFuture()) {
+      // 未来日期：创建数据，可添加条目，但不能打勾
+      const dayData = checkinApp.getDay(dateKey);
+      this._renderCategories(dayData, 'future');
       this._renderProgress(dayData);
     } else {
+      // 过去日期：只读
       const dayData = checkinApp.getDayReadOnly(dateKey);
-      this._renderCategories(dayData, false);
+      this._renderCategories(dayData, 'past');
       this._renderProgress(dayData);
     }
     this._renderStats();
@@ -69,7 +85,7 @@ const Renderer = {
       <div class="nav-date">
         <span class="nav-date-main">${info.dateStr}</span>
         <span class="nav-date-week">${info.weekDay}</span>
-        ${isToday ? '<span class="nav-badge">今天</span>' : '<span class="nav-badge ' + (info.solarDay > new Date().getDate() ? 'future' : 'past') + '">' + (info.solarDay > new Date().getDate() ? '未来' : '历史') + '</span>'}
+        ${isToday ? '<span class="nav-badge">今天</span>' : '<span class="nav-badge ' + (this._isFuture() ? 'future' : 'past') + '">' + (this._isFuture() ? '计划中' : '历史') + '</span>'}
       </div>
       <button class="nav-btn" id="next-day">›</button>
       <button class="nav-btn nav-cal-btn" id="cal-btn" title="选择日期">📅</button>
@@ -125,7 +141,7 @@ const Renderer = {
 
   /* ==================== 打卡区 ==================== */
 
-  _renderCategories(dayData, editable) {
+  _renderCategories(dayData, mode) {
     const container = $('#checklist');
     if (!container) return;
 
@@ -140,33 +156,37 @@ const Renderer = {
       return;
     }
 
+    const isEditable = (mode === 'today' || mode === 'future');
+    const canToggle = (mode === 'today');
+    const canDelete = (mode === 'today');
+
     container.innerHTML = cats.map(cat => `
       <div class="category-card" data-category="${cat.id}">
         <div class="category-header">
           <span class="category-icon">${cat.icon}</span>
           <span class="category-name">${this._escapeHtml(cat.name)}</span>
-          ${editable ? '<button class="cat-edit-btn" data-action="edit-cat" title="编辑/隐藏">✏️</button>' : ''}
+          ${isEditable ? '<button class="cat-edit-btn" data-action="edit-cat" title="编辑/隐藏">✏️</button>' : ''}
           <span class="cat-count">${cat.completed}/${cat.total}</span>
         </div>
         <div class="item-list">
           ${cat.items.map(item => `
             <div class="item-row" data-category="${cat.id}" data-item-id="${item.id}">
-              ${editable
+              ${canToggle
                 ? `<div class="item-checkbox ${item.done ? 'checked' : ''}" data-action="toggle"></div>`
                 : `<div class="item-checkbox-static ${item.done ? 'checked' : ''}"></div>`}
               <span class="item-text ${item.done ? 'done' : ''}">${this._escapeHtml(item.text)}</span>
-              ${editable ? '<button class="item-del" data-action="delete" title="删除">✕</button>' : ''}
+              ${canDelete ? '<button class="item-del" data-action="delete" title="删除">✕</button>' : ''}
             </div>
           `).join('')}
         </div>
-        ${editable ? `
+        ${isEditable ? `
           <div class="add-item-row">
             <input type="text" class="add-item-input" data-category="${cat.id}" placeholder="添加 ${this._escapeHtml(cat.name)} 计划…" autocomplete="off">
             <button class="add-item-btn" data-category="${cat.id}">+</button>
           </div>` : ''}
       </div>
     `).join('')
-    + (editable ? '<div class="add-category-row"><button id="add-cat-btn" class="add-cat-btn">＋ 添加新组</button></div>' : '');
+    + (isEditable ? '<div class="add-category-row"><button id="add-cat-btn" class="add-cat-btn">＋ 添加新组</button></div>' : '');
   },
 
   _renderProgress(dayData) {
@@ -176,9 +196,10 @@ const Renderer = {
       container.innerHTML = '<div class="progress-header">今日进度</div>';
       return;
     }
+    const label = this._isFuture() ? '计划中' : (this._isToday() ? '今日进度' : '该日进度');
     container.innerHTML = `
       <div class="progress-header">
-        <span>${this._isToday() ? '今日进度' : '该日进度'}</span>
+        <span>${label}</span>
         <span>${dayData.totalDone} / ${dayData.totalItems} · ${dayData.progress}%</span>
       </div>
       <div class="progress-bar">
@@ -346,6 +367,21 @@ const Renderer = {
         return;
       }
 
+      // 添加条目（今天和未来日期都可以）
+      const addBtn = e.target.closest('.add-item-btn');
+      if (addBtn) {
+        if (this._isPast()) return;
+        const catId = addBtn.dataset.category;
+        const input = list.querySelector(`.add-item-input[data-category="${catId}"]`);
+        if (input && input.value.trim()) {
+          const dateKey = this.currentDateKey || this._todayKey();
+          checkinApp.addItem(catId, input.value.trim(), dateKey);
+          input.value = '';
+          this.render();
+        }
+        return;
+      }
+
       // 下面的操作只在"今天"有效
       if (!this._isToday()) return;
 
@@ -369,28 +405,17 @@ const Renderer = {
         this.render();
         return;
       }
-
-      // 添加按钮
-      const addBtn = e.target.closest('.add-item-btn');
-      if (addBtn) {
-        const catId = addBtn.dataset.category;
-        const input = list.querySelector(`.add-item-input[data-category="${catId}"]`);
-        if (input && input.value.trim()) {
-          checkinApp.addItem(catId, input.value.trim());
-          input.value = '';
-          this.render();
-        }
-        return;
-      }
     });
 
-    // 回车添加
+    // 回车添加（今天和未来日期都可以）
     list.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && this._isToday()) {
+      if (e.key === 'Enter') {
         const input = e.target.closest('.add-item-input');
         if (input && input.value.trim()) {
+          if (this._isPast()) return;
           const catId = input.dataset.category;
-          checkinApp.addItem(catId, input.value.trim());
+          const dateKey = this.currentDateKey || this._todayKey();
+          checkinApp.addItem(catId, input.value.trim(), dateKey);
           input.value = '';
           this.render();
         }
