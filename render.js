@@ -268,8 +268,14 @@ const Renderer = {
     let heatHtml = '';
     for (let i = 0; i < emptyStart; i++) heatHtml += '<span class="hm-cell empty"></span>';
 
+    const todayKey = this._todayKey();
     for (let d = 1; d <= daysInMonth; d++) {
       const key = this._statsYear + '-' + String(this._statsMonth).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      // 未来日期统一显示灰色（不管有没有数据）
+      if (key > todayKey) {
+        heatHtml += '<span class="hm-cell l0" title="' + key + ' 未来">' + d + '</span>';
+        continue;
+      }
       const dayInfo = stats.days[key];
       const cls = this._heatColor(dayInfo);
       const pct = dayInfo && dayInfo.hasData ? dayInfo.progress + '%' : '—';
