@@ -231,15 +231,6 @@ class CheckinApp {
         if (!catData.items) {
           catData.items = [];
         }
-        // 如果分类没有任何条目，用当前默认值填充（优先用户自定义）
-        const defaults = this._getCategoryDefaults(cat.id);
-        if (catData.items.length === 0 && defaults.length > 0) {
-          catData.items = defaults.map((text, i) => ({
-            id: 'dft_' + i,
-            text,
-            done: false,
-          }));
-        }
       });
     }
   }
