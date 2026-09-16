@@ -266,7 +266,7 @@ const Renderer = {
 
     // 热力图格子
     let heatHtml = '';
-    for (let i = 0; i < emptyStart; i++) heatHtml += '<span class="hm-cell empty"></span>';
+    for (let i = 0; i < emptyStart; i++) heatHtml += '<span class="hm-cell l0"></span>';
 
     const todayKey = this._todayKey();
     for (let d = 1; d <= daysInMonth; d++) {
@@ -278,7 +278,7 @@ const Renderer = {
       }
       const dayInfo = stats.days[key];
       const cls = this._heatColor(dayInfo);
-      const pct = dayInfo && dayInfo.hasData ? dayInfo.progress + '%' : '—';
+      const pct = dayInfo ? dayInfo.progress + '%' : '0%';
       heatHtml += '<span class="hm-cell ' + cls + '" title="' + key + ' 完成' + pct + '">' + d + '</span>';
     }
 
@@ -301,11 +301,11 @@ const Renderer = {
         <div class="hm-weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
         <div class="hm-grid">${heatHtml}</div>
         <div class="hm-legend">
-          <span class="hm-legend-item"><span class="hm-cell l0"></span> 无</span>
-          <span class="hm-legend-item"><span class="hm-cell l1"></span> 0%</span>
-          <span class="hm-legend-item"><span class="hm-cell l2"></span> 1-49%</span>
-          <span class="hm-legend-item"><span class="hm-cell l3"></span> 50-79%</span>
-          <span class="hm-legend-item"><span class="hm-cell l4"></span> 80-99%</span>
+          <span class="hm-legend-item"><span class="hm-cell l0"></span> 0%</span>
+          <span class="hm-legend-item"><span class="hm-cell l1"></span> 20%</span>
+          <span class="hm-legend-item"><span class="hm-cell l2"></span> 40%</span>
+          <span class="hm-legend-item"><span class="hm-cell l3"></span> 60%</span>
+          <span class="hm-legend-item"><span class="hm-cell l4"></span> 80%</span>
           <span class="hm-legend-item"><span class="hm-cell l5"></span> 100%</span>
         </div>
         <div class="hm-summary">
@@ -343,12 +343,14 @@ const Renderer = {
   },
 
   _heatColor(dayInfo) {
-    if (!dayInfo || !dayInfo.hasData) return 'l0';
-    if (dayInfo.progress === 0) return 'l1';
-    if (dayInfo.progress < 50) return 'l2';
-    if (dayInfo.progress < 80) return 'l3';
-    if (dayInfo.progress < 100) return 'l4';
-    return 'l5';
+    if (!dayInfo) return 'l0';
+    const p = dayInfo.progress;
+    if (p >= 100) return 'l5';
+    if (p >= 80) return 'l4';
+    if (p >= 60) return 'l3';
+    if (p >= 40) return 'l2';
+    if (p >= 20) return 'l1';
+    return 'l0';
   },
 
   /* ==================== 事件绑定 ==================== */

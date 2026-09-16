@@ -381,7 +381,7 @@ class CheckinApp {
       const key = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const day = this.data.days[key];
       if (!day || !day.categories) {
-        days[key] = { totalItems: 0, totalDone: 0, progress: -1, hasData: false };
+        days[key] = { totalItems: 0, totalDone: 0, progress: 0, hasData: false };
         continue;
       }
       let catItems = 0, catDone = 0;
