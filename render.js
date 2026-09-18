@@ -302,11 +302,12 @@ const Renderer = {
         <div class="hm-grid">${heatHtml}</div>
         <div class="hm-legend">
           <span class="hm-legend-item"><span class="hm-cell l0"></span> 0%</span>
-          <span class="hm-legend-item"><span class="hm-cell l1"></span> 20%</span>
-          <span class="hm-legend-item"><span class="hm-cell l2"></span> 40%</span>
-          <span class="hm-legend-item"><span class="hm-cell l3"></span> 60%</span>
-          <span class="hm-legend-item"><span class="hm-cell l4"></span> 80%</span>
-          <span class="hm-legend-item"><span class="hm-cell l5"></span> 100%</span>
+          <span class="hm-legend-item"><span class="hm-cell l1"></span> 1-19%</span>
+          <span class="hm-legend-item"><span class="hm-cell l2"></span> 20-39%</span>
+          <span class="hm-legend-item"><span class="hm-cell l3"></span> 40-59%</span>
+          <span class="hm-legend-item"><span class="hm-cell l4"></span> 60-79%</span>
+          <span class="hm-legend-item"><span class="hm-cell l5"></span> 80-99%</span>
+          <span class="hm-legend-item"><span class="hm-cell l6"></span> 100%</span>
         </div>
         <div class="hm-summary">
           <div class="hm-summary-row">
@@ -345,11 +346,12 @@ const Renderer = {
   _heatColor(dayInfo) {
     if (!dayInfo) return 'l0';
     const p = dayInfo.progress;
-    if (p >= 100) return 'l5';
-    if (p >= 80) return 'l4';
-    if (p >= 60) return 'l3';
-    if (p >= 40) return 'l2';
-    if (p >= 20) return 'l1';
+    if (p >= 100) return 'l6';
+    if (p >= 80) return 'l5';
+    if (p >= 60) return 'l4';
+    if (p >= 40) return 'l3';
+    if (p >= 20) return 'l2';
+    if (p >= 1) return 'l1';
     return 'l0';
   },
 
