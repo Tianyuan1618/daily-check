@@ -158,7 +158,9 @@ class CheckinApp {
    * 获取某分类的默认条目（优先用户自定义，否则用 config）
    */
   _getCategoryDefaults(catId) {
-    if (this.data.defaults && this.data.defaults[catId] && this.data.defaults[catId].length > 0) {
+    // 只有"用户保存过且非空"才视为自定义默认；空数组/缺失则回退到 config 默认。
+    // Array.isArray 守卫：避免 localStorage 损坏时 .length 取值报错。
+    if (this.data.defaults && Array.isArray(this.data.defaults[catId]) && this.data.defaults[catId].length > 0) {
       return this.data.defaults[catId];
     }
     const cat = this._getBaseCategory(catId);
@@ -327,18 +329,36 @@ class CheckinApp {
    */
   saveCurrentAsDefaults(dateKey) {
     const key = dateKey || this._todayKey();
-    const day = this.data.days[key];
+    let day = this.data.days[key];
     if (!day || !day.categories) return { success: false, error: '没有找到当天的数据' };
 
+    // 兼容旧格式：v3 数据的 day.categories 是数组，不是 {catId: {items}} 对象。
+    // _migrateDay 只处理"已有但缺分类"的情况，不会把数组转成对象，
+    // 这里就地转换，否则下面按 day.categories[cat.id] 取会全部取空，
+    // 导致保存"成功"但 defaults 全是空数组。
+    if (Array.isArray(day.categories)) {
+      const obj = {};
+      day.categories.forEach(c => { if (c && c.id) obj[c.id] = c; });
+      day.categories = obj;
+      this.data.days[key] = day;
+      this.save();
+    }
+
     const defaults = {};
+    let savedCount = 0;
     this._getAllCategories().forEach(cat => {
-      const items = (day.categories[cat.id] && day.categories[cat.id].items) || [];
-      defaults[cat.id] = items.map(i => i.text).filter(t => t && t.trim());
+      const catData = day.categories[cat.id];
+      const items = (catData && catData.items) || [];
+      const texts = items.map(i => i.text).filter(t => t && String(t).trim());
+      if (texts.length > 0) {
+        defaults[cat.id] = texts;   // 空的默认组跳过不保存（保留原 config 默认）
+        savedCount++;
+      }
     });
 
     this.data.defaults = defaults;
     this.save();
-    return { success: true, defaults };
+    return { success: true, defaults, savedCount };
   }
 
   /**

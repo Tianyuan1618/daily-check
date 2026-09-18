@@ -605,7 +605,12 @@ const Renderer = {
       () => {
         const result = checkinApp.saveCurrentAsDefaults();
         if (result.success) {
-          this._showModal('✅ 已保存默认值', '每日默认值已更新。\n\n明天开始，打卡会自动带上这些条目。');
+          // savedCount = 实际保存了默认条目的组数（空组跳过不保存）
+          if (result.savedCount === 0) {
+            this._showModal('已保存', '今天所有组的条目都是空的。\n\n已跳过空组，保留原有默认条目不变。');
+          } else {
+            this._showModal('✅ 已保存默认值', `已保存 ${result.savedCount} 个组的每日默认条目。\n\n明天开始，打卡会自动带上这些条目。`);
+          }
         } else {
           this._showModal('保存失败', result.error || '请先添加一些打卡条目。');
         }
