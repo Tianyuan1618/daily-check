@@ -13,8 +13,10 @@
 
 /* ==================== 一、基础常量 ==================== */
 
-// 星期
+// 星期（中文）
 const WEEK_DAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+// 星期（英文）
+const WEEK_DAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // 农历月份名（映射官方 getMonthInChinese 输出）
 const LUNAR_MONTH_NAMES = {
@@ -202,7 +204,10 @@ function getDateInfo(dateStr) {
 
   const now = new Date(year, month - 1, day);
   const lunar = getLunarDate(year, month, day);
-  const weekDay = WEEK_DAYS[now.getDay()];
+  // 星期：根据当前语言选择
+  const weekDay = (typeof getLocale === 'function' && getLocale() === 'en')
+    ? WEEK_DAYS_EN[now.getDay()]
+    : WEEK_DAYS[now.getDay()];
 
   return {
     solarYear: year,
@@ -210,7 +215,10 @@ function getDateInfo(dateStr) {
     solarDay: day,
     weekDay,
     date: now,
-    dateStr: `${year}年${String(month).padStart(2, '0')}月${String(day).padStart(2, '0')}日`,
+    // 公历日期：根据当前语言选择格式
+    dateStr: (typeof fmtDateStr === 'function')
+      ? fmtDateStr(year, month, day)
+      : `${year}年${String(month).padStart(2, '0')}月${String(day).padStart(2, '0')}日`,
     dateKey: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
     ...lunar,
   };

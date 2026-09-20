@@ -15,16 +15,21 @@
   <link rel="stylesheet" href="style.css?v=20260916b">
 
   <!-- 配置（最先加载，其他模块依赖） -->
-  <script src="config.js?v=20260916b"></script>
+  <script src="config.js?v=20260916c"></script>
+  <!-- 语言模块（依赖 config.js 的 storageKey；在 data.js 之前，data.js 调用 getLocale） -->
+  <script src="i18n.js?v=20260916c"></script>
 </head>
 <body>
 
   <div class="container">
 
-    <!-- 头部 - 应用标题 -->
+    <!-- 头部 - 应用标题 + 语言切换 -->
     <div class="header">
-      <div class="app-title">每日打卡</div>
-      <div class="app-subtitle">日 省 吾 身</div>
+      <div class="header-text">
+        <div class="app-title" data-i18n="每日打卡">每日打卡</div>
+        <div class="app-subtitle" data-i18n="日省吾身">日 省 吾 身</div>
+      </div>
+      <button id="lang-btn" class="lang-btn" title="切换语言 / Switch language">EN</button>
     </div>
 
     <!-- 日期导航 -->
@@ -39,19 +44,19 @@
     <!-- 打卡分类区 -->
     <div class="checklist-section">
       <div class="section-title" id="section-title">
-        <span>今日功课</span>
-        <button id="manage-btn" class="section-btn" title="管理分组">⚙️</button>
+        <span data-i18n="今日功课">今日功课</span>
+        <button id="manage-btn" class="section-btn" title="管理分组 / Manage Groups">⚙️</button>
       </div>
       <div id="checklist" class="checklist"></div>
     </div>
 
     <!-- 操作按钮 -->
     <div class="actions">
-      <button id="save-defaults-btn" class="action-btn primary">📌 存为默认</button>
-      <button id="reset-btn" class="action-btn danger">🔄 重置今日</button>
-      <button id="stats-btn" class="action-btn">📊 月统计</button>
-      <button id="export-btn" class="action-btn">📤 导出数据</button>
-      <button id="import-btn" class="action-btn">📥 导入数据</button>
+      <button id="save-defaults-btn" class="action-btn primary"><span>📌</span> <span data-i18n="存为默认">存为默认</span></button>
+      <button id="reset-btn" class="action-btn danger"><span>🔄</span> <span data-i18n="重置今日">重置今日</span></button>
+      <button id="stats-btn" class="action-btn"><span>📊</span> <span data-i18n="月统计">月统计</span></button>
+      <button id="export-btn" class="action-btn"><span>📤</span> <span data-i18n="导出数据">导出数据</span></button>
+      <button id="import-btn" class="action-btn"><span>📥</span> <span data-i18n="导入数据">导入数据</span></button>
     </div>
 
     <!-- 统计 -->
@@ -73,12 +78,12 @@
         <button class="cal-nav" id="cal-next">›</button>
       </div>
       <div class="cal-weekdays">
-        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+        <span data-i18n="一">一</span><span data-i18n="二">二</span><span data-i18n="三">三</span><span data-i18n="四">四</span><span data-i18n="五">五</span><span data-i18n="六">六</span><span data-i18n="日">日</span>
       </div>
       <div class="cal-days" id="cal-days"></div>
       <div class="cal-footer">
-        <button class="cal-btn" id="cal-today">今天</button>
-        <button class="cal-btn cal-close" id="cal-close">取消</button>
+        <button class="cal-btn" id="cal-today" data-i18n="今天">今天</button>
+        <button class="cal-btn cal-close" id="cal-close" data-i18n="取消">取消</button>
       </div>
     </div>
   </div>
@@ -86,11 +91,11 @@
   <!-- 确认弹窗 -->
   <div id="modal-overlay" class="modal-overlay">
     <div class="modal-box">
-      <div class="modal-title" id="modal-title">确认</div>
-      <div class="modal-text" id="modal-text">确定要执行此操作吗？</div>
+      <div class="modal-title" id="modal-title" data-i18n="确认">确认</div>
+      <div class="modal-text" id="modal-text" data-i18n="确定要执行此操作吗？">确定要执行此操作吗？</div>
       <div class="modal-btns">
-        <button id="modal-confirm" class="modal-btn confirm">确定</button>
-        <button id="modal-cancel" class="modal-btn cancel">取消</button>
+        <button id="modal-confirm" class="modal-btn confirm" data-i18n="确定">确定</button>
+        <button id="modal-cancel" class="modal-btn cancel" data-i18n="取消">取消</button>
       </div>
     </div>
   </div>

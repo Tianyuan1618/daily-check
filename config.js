@@ -7,24 +7,27 @@
 const CONFIG = {
 
   // ─── 每日打卡分类（每个分类下有多个条目） ────────────────
+  // name 是中文原名（i18n.js 的 tCatName 负责翻译）
+  // 英文显示：Health / Study / Other
+  // defaults 全部为空——内容由用户自己添加，或点「📌 存为默认」
   categories: [
     {
       id: 'health',
       name: '健康',
       icon: '💪',
-      defaults: ['运动 30 分钟']
+      defaults: []
     },
     {
       id: 'work',
       name: '工作',
-      icon: '💼',
+      icon: '📚',
       defaults: []
     },
     {
       id: 'family',
       name: '家庭',
-      icon: '🏠',
-      defaults: ['陪伴孩子']
+      icon: '📎',
+      defaults: []
     },
   ],
 

@@ -605,12 +605,16 @@ const Renderer = {
       () => {
         const result = checkinApp.saveCurrentAsDefaults();
         if (result.success) {
-          // savedCount = 实际保存了默认条目的组数（空组跳过不保存）
+          // 同步未来已存在的日期（完全替换，保留已打勾状态）
+          const syncRes = checkinApp.syncFutureDates(30);
+          let tip = `已保存 ${result.savedCount} 个组的每日默认条目。\n\n`;
           if (result.savedCount === 0) {
-            this._showModal('已保存', '今天所有组的条目都是空的。\n\n已跳过空组，保留原有默认条目不变。');
-          } else {
-            this._showModal('✅ 已保存默认值', `已保存 ${result.savedCount} 个组的每日默认条目。\n\n明天开始，打卡会自动带上这些条目。`);
+            tip = '今天所有组的条目都是空的。\n\n已跳过空组，保留原有默认条目不变。\n\n';
           }
+          tip += syncRes.success && syncRes.synced > 0
+            ? `另外已把未来 ${syncRes.synced} 天的计划同步为今天的样子（已打勾的不受影响）。`
+            : '以后新建的日期会自动带上这些条目。';
+          this._showModal('✅ 已保存默认值', tip);
         } else {
           this._showModal('保存失败', result.error || '请先添加一些打卡条目。');
         }

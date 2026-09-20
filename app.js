@@ -60,7 +60,8 @@ class CheckinApp {
       const edit = (this.data.categoryEdits && this.data.categoryEdits[c.id]) || {};
       list.push({
         ...c,
-        name: edit.name || c.name,
+        // 用户改过名 -> 用用户的；否则按当前语言取本地化默认名
+        name: edit.name || (typeof tCatName === 'function' ? tCatName(c.id) : c.name),
         icon: edit.icon || c.icon,
         hidden: edit.hidden === true,
         isCustom: false,
@@ -333,13 +334,10 @@ class CheckinApp {
     if (!day || !day.categories) return { success: false, error: '没有找到当天的数据' };
 
     // 兼容旧格式：v3 数据的 day.categories 是数组，不是 {catId: {items}} 对象。
-    // _migrateDay 只处理"已有但缺分类"的情况，不会把数组转成对象，
+    // _migrateDay 只处理"已有但缺分类"，不会把数组转成对象，
     // 这里就地转换，否则下面按 day.categories[cat.id] 取会全部取空，
     // 导致保存"成功"但 defaults 全是空数组。
-    if (Array.isArray(day.categories)) {
-      const obj = {};
-      day.categories.forEach(c => { if (c && c.id) obj[c.id] = c; });
-      day.categories = obj;
+    if (this._normalizeDayCategories(day)) {
       this.data.days[key] = day;
       this.save();
     }
@@ -359,6 +357,73 @@ class CheckinApp {
     this.data.defaults = defaults;
     this.save();
     return { success: true, defaults, savedCount };
+  }
+
+  /**
+   * 把今天的条目内容同步到未来已存在的日期（完全替换）
+   * 语义：「存为默认」后，未来日期都换成今天的样子。
+   * - 按文本匹配保留已打勾状态（未来日期已 done 的同名条目保持 done）
+   * - 只处理今天之后已存在的日期；尚未创建的日期由 getDay/_emptyDay 按 defaults 自动填充
+   * - 跳过隐藏分类
+   */
+  syncFutureDates(days = 30) {
+    const todayKey = this._todayKey();
+    const today = this.data.days[todayKey];
+    if (!today || !today.categories) return { success: false, error: '今天还没有数据' };
+    if (Array.isArray(today.categories)) this._normalizeDayCategories(today);
+
+    // 今天的条目快照（按分类）
+    const todayCats = {};
+    Object.entries(today.categories).forEach(([id, c]) => {
+      todayCats[id] = ((c && c.items) || []).map(i => ({ text: i.text, done: !!i.done }));
+    });
+
+    const hiddenIds = new Set(this._getAllCategories().filter(c => c.hidden).map(c => c.id));
+
+    // 日期边界：明天 ~ days 天后（按字符串 key 比较即可，YYYY-MM-DD 字典序 = 时间序）
+    const end = new Date(Date.now() + days * 86400000);
+    const endKey = end.getFullYear() + '-' + String(end.getMonth() + 1).padStart(2, '0') + '-' + String(end.getDate()).padStart(2, '0');
+
+    const synced = [];
+    const touchedCats = new Set();
+    Object.keys(this.data.days).forEach(key => {
+      if (key <= todayKey || key >= endKey) return;   // 只处理明天 ~ days 天前
+      const day = this.data.days[key];
+      if (!day || !day.categories) return;
+      this._normalizeDayCategories(day);
+
+      Object.keys(todayCats).forEach(catId => {
+        if (hiddenIds.has(catId)) return;
+        const oldItems = (day.categories[catId] && day.categories[catId].items) || [];
+        // 记录未来日期里已打勾的条目文本
+        const doneTexts = new Set(oldItems.filter(i => i.done).map(i => i.text));
+        day.categories[catId] = {
+          items: todayCats[catId].map((t, i) => ({
+            id: 'dft_' + i,
+            text: t.text,
+            done: doneTexts.has(t.text),   // 同名且未来已打勾 -> 保留
+          })),
+        };
+        touchedCats.add(catId);
+        synced.push(key);
+      });
+    });
+
+    if (synced.length > 0) this.save();
+    return {
+      success: true,
+      synced: [...new Set(synced)].length,   // 天数
+      categories: [...touchedCats],
+    };
+  }
+
+  /** 就地归一化：day.categories 数组格式转对象格式（v3 兼容） */
+  _normalizeDayCategories(day) {
+    if (!Array.isArray(day.categories)) return false;
+    const obj = {};
+    day.categories.forEach(c => { if (c && c.id) obj[c.id] = c; });
+    day.categories = obj;
+    return true;
   }
 
   /**
