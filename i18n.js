@@ -3,6 +3,7 @@
  *  i18n.js — 语言模块（中文 / 英语）
  *  - LOCALE:        当前语言（默认 zh）
  *  - t(s):          翻译字符串，回退到原文
+ *  - tFormat(s):    模板翻译，{placeholder} 替换
  *  - tCatName(id):  默认分类的本地化名称
  *  - fmtDate():     公历日期本地化格式
  *  - fmtMonth():    月份标题本地化格式
@@ -55,11 +56,11 @@ const STRINGS = {
   '每日打卡':           'Daily Check-in',
   '日省吾身':           'Daily Reflection',
   '今日功课':           'Today\'s Tasks',
-  '📌 存为默认':        '📌 Set as Default',
-  '🔄 重置今日':        '🔄 Reset Today',
-  '📊 月统计':          '📊 Monthly Stats',
-  '📤 导出数据':        '📤 Export Data',
-  '📥 导入数据':        '📥 Import Data',
+  '存为默认':           'Set as Default',
+  '重置今日':           'Reset Today',
+  '月统计':             'Monthly Stats',
+  '导出数据':           'Export Data',
+  '导入数据':           'Import Data',
   '今天':               'Today',
   '取消':               'Cancel',
   '确定':               'Confirm',
@@ -100,18 +101,15 @@ const STRINGS = {
   '📋 返回打卡':        '📋 Back to Check-in',
 
   // ── 组管理 ──
-  '添加新组':           'Add Group',
   '组名称（必填，最多8字）': 'Group name (required, max 8 chars)',
   '图标 emoji（可选，如 📚）': 'Icon emoji (optional, e.g. 📚)',
   '✅ 已添加':          '✅ Added',
   '添加失败':           'Add Failed',
   '请填写组名称':       'Please enter a group name',
-  '已创建，快添加你的计划吧！': 'has been created. Add your plans!',
   '⚠️ 此组当前已隐藏':  '⚠️ This group is currently hidden',
   '修改失败':           'Update Failed',
   '组名称不能为空':     'Group name cannot be empty',
   '✅ 已修改':          '✅ Updated',
-  '已更新。':           'updated.',
   '管理组':             'Manage Groups',
   '暂无分类':           'No categories',
   '👁 恢复':            '👁 Show',
@@ -124,27 +122,36 @@ const STRINGS = {
   '确认重置':           'Confirm Reset',
   '今日所有打卡内容将被清空，确定吗？': 'All check-in items for today will be cleared. Continue?',
   '保存为默认值':       'Save as Default',
-  '将今天的打卡条目保存为每日默认值？': 'Save today\'s check-in items as daily defaults?',
-  '以后每天打开、重置时，会自动使用这些条目。': 'They will be used automatically when opening or resetting on future days.',
   '✅ 已保存默认值':     '✅ Defaults Saved',
-  '已保存':             'Saved',
-  '个组的每日默认条目。': ' groups\' daily default items.',
-  '今天所有组的条目都是空的。': 'All groups have empty items today.',
-  '已跳过空组，保留原有默认条目不变。': 'Empty groups skipped; existing defaults kept unchanged.',
-  '另外已把未来':         'Also synced the next ',
-  '天的计划同步为今天的样子（已打勾的不受影响）。': ' days to match today (checked items kept).',
-  '以后新建的日期会自动带上这些条目。': 'Future dates will automatically include these items.',
-  '保存失败':             'Save Failed',
+  '保存失败':            'Save Failed',
   '请先添加一些打卡条目。': 'Please add some check-in items first.',
-  '导入成功':             'Import Successful',
-  '数据已导入。':         'Data imported.',
-  '导入失败':             'Import Failed',
+  '导入成功':            'Import Successful',
+  '数据已导入。':        'Data imported.',
+  '导入失败':            'Import Failed',
+  '以后新建的日期会自动带上这些条目。': 'Future dates will automatically include these items.',
 
   // ── 导出文件名 ──
   '打卡数据':           'checkin_data',
 
   // ── 日历星期 ──
   '一': 'Mon', '二': 'Tue', '三': 'Wed', '四': 'Thu', '五': 'Fri', '六': 'Sat', '日': 'Sun',
+
+  // ── 模板字符串（用 tFormat() 翻译）──
+  '添加 {name} 计划…':              'Add {name} plan…',
+  '新组「{name}」已创建，快添加你的计划吧！': 'Group "{name}" created. Add your plans!',
+  '编辑「{name}」':                 'Edit "{name}"',
+  '「{name}」已更新。':             '"{name}" updated.',
+  '已保存 {count} 个组的每日默认条目。': 'Saved daily defaults for {count} group(s).',
+  '另外已把未来 {days} 天的计划同步为今天的样子（已打勾的不受影响）。': 'Also synced the next {days} days to match today (checked items kept).',
+  '打卡天数 / {n}':                 'Check-in Days / {n}',
+
+  // ── 多句组合字符串 ──
+  '将今天的打卡条目保存为每日默认值？\\n\\n以后每天打开、重置时，会自动使用这些条目。':
+    'Save today\'s check-in items as daily defaults?\\n\\nThey will be used automatically when opening or resetting on future days.',
+  '今天所有组的条目都是空的。\\n\\n已跳过空组，保留原有默认条目不变。\\n\\n':
+    'All groups have empty items today.\\n\\nEmpty groups skipped; existing defaults kept unchanged.\\n\\n',
+  '不积跬步，无以至千里':
+    'A journey of a thousand miles begins with a single step.',
 };
 
 // ─── 翻译主函数 ─────────────────────────────────────────────
@@ -154,18 +161,29 @@ function t(s) {
   return s;
 }
 
+// ─── 模板翻译（{placeholder} 替换）──────────────────────────
+function tFormat(s, vars) {
+  if (typeof s !== 'string' || s === '') return s;
+  var translated = t(s);
+  if (vars && typeof translated === 'string') {
+    Object.keys(vars).forEach(function(k) {
+      translated = translated.split('{' + k + '}').join(vars[k]);
+    });
+  }
+  return translated;
+}
+
 // ─── 默认分类本地化名称 ─────────────────────────────────────
-// key = 中文原名，value = { zh, en }
+// key = category ID
 const CAT_NAMES = {
-  '健康': { zh: '健康',   en: 'Health' },
-  '工作': { zh: '工作',   en: 'Study' },
-  '家庭': { zh: '家庭',   en: 'Other' },
+  health: { zh: '健康',   en: 'Health' },
+  work:   { zh: '工作',   en: 'Study' },
+  family: { zh: '家庭',   en: 'Other' },
 };
 
 function tCatName(id) {
-  const cn = { health: '健康', work: '工作', family: '家庭' }[id] || id;
-  if (CAT_NAMES[cn]) return CAT_NAMES[cn][LOCALE] || cn;
-  return cn;
+  if (CAT_NAMES[id]) return CAT_NAMES[id][LOCALE] || id;
+  return id;
 }
 
 // ─── 日期格式 ───────────────────────────────────────────────
@@ -180,8 +198,9 @@ function fmtMonth(y, m) {
 }
 
 function fmtWeekDay(dayIdx) {
-  const zh = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  return LOCALE === 'en' ? zh[dayIdx] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayIdx];
+  const en = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const zh = ['日', '一', '二', '三', '四', '五', '六'];
+  return LOCALE === 'en' ? en[dayIdx] : zh[dayIdx];
 }
 
 // ─── 假期 / 节日翻译 ────────────────────────────────────────

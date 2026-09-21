@@ -175,7 +175,6 @@ function getLunarDate(year, month, day) {
     jieQi,
     festivals,
     germanHolidays,
-    weekDay,
     dateString: `${lunarYear}年${monthName}${dayName}`,
     fullDateString: `农历${ganZhiYear}年 ${monthName}${dayName}（${ganZhiDay}日）`,
   };
@@ -210,6 +209,7 @@ function getDateInfo(dateStr) {
     : WEEK_DAYS[now.getDay()];
 
   return {
+    ...lunar,
     solarYear: year,
     solarMonth: month,
     solarDay: day,

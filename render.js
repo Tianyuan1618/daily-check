@@ -14,6 +14,9 @@ const Renderer = {
 
   init() {
     this._bindEvents();
+    this._bindLangBtn();
+    // 应用静态文本翻译（index.html 里的 data-i18n）
+    if (typeof applyI18n === 'function') applyI18n();
     this.render();
   },
 
@@ -85,11 +88,11 @@ const Renderer = {
       <div class="nav-date">
         <span class="nav-date-main">${info.dateStr}</span>
         <span class="nav-date-week">${info.weekDay}</span>
-        ${isToday ? '<span class="nav-badge">今天</span>' : '<span class="nav-badge ' + (this._isFuture() ? 'future' : 'past') + '">' + (this._isFuture() ? '计划中' : '历史') + '</span>'}
+        ${isToday ? '<span class="nav-badge">' + t('今天') + '</span>' : '<span class="nav-badge ' + (this._isFuture() ? 'future' : 'past') + '">' + (this._isFuture() ? t('计划中') : t('历史')) + '</span>'}
       </div>
       <button class="nav-btn" id="next-day">›</button>
-      <button class="nav-btn nav-cal-btn" id="cal-btn" title="选择日期">📅</button>
-      ${isToday ? '' : '<button class="nav-today-btn" id="go-today-btn">📅 今天</button>'}
+      <button class="nav-btn nav-cal-btn" id="cal-btn" title="${t('选择日期')}">📅</button>
+      ${isToday ? '' : '<button class="nav-today-btn" id="go-today-btn">📅 ' + t('今天') + '</button>'}
     `;
     const prev = $('#prev-day');
     const next = $('#next-day');
@@ -117,21 +120,25 @@ const Renderer = {
     const header = $('#header');
     if (!header) return;
 
-    const jieQiHtml = info.jieQi ? `<div class="head-tag jieqi">🍂 节气：${info.jieQi}</div>` : '';
+    const jieQiHtml = info.jieQi ? `<div class="head-tag jieqi">🍂 ${t('节气：')}${info.jieQi}</div>` : '';
     const festivalHtml = (info.festivals && info.festivals.length > 0)
-      ? `<div class="head-tag festival">🎉 ${info.festivals.join('、')}</div>` : '';
+      ? `<div class="head-tag festival">🎉 ${info.festivals.map(f => typeof tFestival === 'function' ? tFestival(f) : f).join('、')}</div>` : '';
     const deHtml = (info.germanHolidays && info.germanHolidays.length > 0)
-      ? `<div class="head-tag de">🇩🇪 ${info.germanHolidays.map(h => h.name + (h.note ? '(' + h.note + ')' : '')).join('、')}</div>` : '';
+      ? `<div class="head-tag de">🇩🇪 ${info.germanHolidays.map(h => (typeof tHoliday === 'function' ? tHoliday(h.name) : h.name) + (h.note ? '(' + h.note + ')' : '')).join('、')}</div>` : '';
+
+    const isZh = (typeof getLocale === 'function' && getLocale() === 'zh');
+    const lunarHtml = isZh ? `
+        <div class="divider"></div>
+        <div class="lunar-date">
+          <span class="gan-zhi">${info.ganZhiYear}</span> 年 · ${info.shengXiao}年 · ${info.monthName}${info.dayName}
+        </div>
+        <div class="lunar-date sub">${info.ganZhiDay}日</div>` : '';
 
     header.innerHTML = `
       <div class="date-card">
         <div class="solar-date">${info.dateStr}</div>
         <div class="week-day">${info.weekDay}</div>
-        <div class="divider"></div>
-        <div class="lunar-date">
-          <span class="gan-zhi">${info.ganZhiYear}</span> 年 · ${info.shengXiao}年 · ${info.monthName}${info.dayName}
-        </div>
-        <div class="lunar-date sub">${info.ganZhiDay}日</div>
+        ${lunarHtml}
         <div class="head-tags">
           ${jieQiHtml}${festivalHtml}${deHtml}
         </div>
@@ -146,13 +153,13 @@ const Renderer = {
     if (!container) return;
 
     if (!dayData || !dayData.categories) {
-      container.innerHTML = '<div class="empty-tip">该日期还没有打卡记录</div>';
+      container.innerHTML = '<div class="empty-tip">' + t('该日期还没有打卡记录') + '</div>';
       return;
     }
 
     const cats = dayData.categories;
     if (cats.length === 0) {
-      container.innerHTML = '<div class="empty-tip">还没有分类，点下方"添加新组"开始吧</div>';
+      container.innerHTML = '<div class="empty-tip">' + t('还没有分类，点下方"添加新组"开始吧') + '</div>';
       return;
     }
 
@@ -165,7 +172,7 @@ const Renderer = {
         <div class="category-header">
           <span class="category-icon">${cat.icon}</span>
           <span class="category-name">${this._escapeHtml(cat.name)}</span>
-          ${isEditable ? '<button class="cat-edit-btn" data-action="edit-cat" title="编辑/隐藏">✏️</button>' : ''}
+          ${isEditable ? '<button class="cat-edit-btn" data-action="edit-cat" title="' + t('编辑/隐藏') + '">✏️</button>' : ''}
           <span class="cat-count">${cat.completed}/${cat.total}</span>
         </div>
         <div class="item-list">
@@ -175,28 +182,28 @@ const Renderer = {
                 ? `<div class="item-checkbox ${item.done ? 'checked' : ''}" data-action="toggle"></div>`
                 : `<div class="item-checkbox-static ${item.done ? 'checked' : ''}"></div>`}
               <span class="item-text ${item.done ? 'done' : ''}">${this._escapeHtml(item.text)}</span>
-              ${canDelete ? '<button class="item-del" data-action="delete" title="删除">✕</button>' : ''}
+              ${canDelete ? '<button class="item-del" data-action="delete" title="' + t('删除') + '">✕</button>' : ''}
             </div>
           `).join('')}
         </div>
         ${isEditable ? `
           <div class="add-item-row">
-            <input type="text" class="add-item-input" data-category="${cat.id}" placeholder="添加 ${this._escapeHtml(cat.name)} 计划…" autocomplete="off">
+            <input type="text" class="add-item-input" data-category="${cat.id}" placeholder="${tFormat('添加 {name} 计划…', {name: this._escapeHtml(cat.name)})}" autocomplete="off">
             <button class="add-item-btn" data-category="${cat.id}">+</button>
           </div>` : ''}
       </div>
     `).join('')
-    + (isEditable ? '<div class="add-category-row"><button id="add-cat-btn" class="add-cat-btn">＋ 添加新组</button></div>' : '');
+    + (isEditable ? '<div class="add-category-row"><button id="add-cat-btn" class="add-cat-btn">＋ ' + t('添加新组') + '</button></div>' : '');
   },
 
   _renderProgress(dayData) {
     const container = $('#progress-section');
     if (!container) return;
     if (!dayData) {
-      container.innerHTML = '<div class="progress-header">今日进度</div>';
+      container.innerHTML = '<div class="progress-header">' + t('今日进度') + '</div>';
       return;
     }
-    const label = this._isFuture() ? '计划中' : (this._isToday() ? '今日进度' : '该日进度');
+    const label = this._isFuture() ? t('计划中') : (this._isToday() ? t('今日进度') : t('该日进度'));
     container.innerHTML = `
       <div class="progress-header">
         <span>${label}</span>
@@ -218,19 +225,19 @@ const Renderer = {
     container.innerHTML = `
       <div class="stat-item">
         <div class="stat-number">${stats.totalDays}</div>
-        <div class="stat-label">打卡天数</div>
+        <div class="stat-label">${t('打卡天数')}</div>
       </div>
       <div class="stat-item">
         <div class="stat-number">${today.progress}%</div>
-        <div class="stat-label">今日完成率</div>
+        <div class="stat-label">${t('今日完成率')}</div>
       </div>
       <div class="stat-item">
         <div class="stat-number">${stats.streak}</div>
-        <div class="stat-label">连续天数</div>
+        <div class="stat-label">${t('连续天数')}</div>
       </div>
     `;
     const footer = $('.footer');
-    if (footer) footer.textContent = CONFIG.app.footer;
+    if (footer) footer.textContent = t('不积跬步，无以至千里');
   },
 
   /* ==================== 月统计视图 ==================== */
@@ -258,7 +265,7 @@ const Renderer = {
     const container = $('#checklist');
     if (!container) return;
     const stats = checkinApp.getMonthStats(this._statsYear, this._statsMonth);
-    if (!stats) { container.innerHTML = '<div class="empty-tip">暂无数据</div>'; return; }
+    if (!stats) { container.innerHTML = '<div class="empty-tip">' + t('暂无数据') + '</div>'; return; }
 
     const daysInMonth = stats.summary.monthDays;
     const firstDay = new Date(this._statsYear, this._statsMonth - 1, 1).getDay();
@@ -273,13 +280,13 @@ const Renderer = {
       const key = this._statsYear + '-' + String(this._statsMonth).padStart(2, '0') + '-' + String(d).padStart(2, '0');
       // 未来日期统一显示灰色（不管有没有数据）
       if (key > todayKey) {
-        heatHtml += '<span class="hm-cell l0" title="' + key + ' 未来">' + d + '</span>';
+        heatHtml += '<span class="hm-cell l0" title="' + key + ' ' + t('未来') + '">' + d + '</span>';
         continue;
       }
       const dayInfo = stats.days[key];
       const cls = this._heatColor(dayInfo);
       const pct = dayInfo ? dayInfo.progress + '%' : '0%';
-      heatHtml += '<span class="hm-cell ' + cls + '" title="' + key + ' 完成' + pct + '">' + d + '</span>';
+      heatHtml += '<span class="hm-cell ' + cls + '" title="' + key + ' ' + t('完成') + pct + '">' + d + '</span>';
     }
 
     // 分类条形图
@@ -295,10 +302,10 @@ const Renderer = {
       <div class="hm-section">
         <div class="hm-nav">
           <button class="hm-nav-btn" id="hm-prev">‹</button>
-          <span class="hm-title">${this._statsYear}年 ${this._statsMonth}月</span>
+          <span class="hm-title">${fmtMonth(this._statsYear, this._statsMonth)}</span>
           <button class="hm-nav-btn" id="hm-next">›</button>
         </div>
-        <div class="hm-weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+        <div class="hm-weekdays">${[1,2,3,4,5,6,0].map(i => t(fmtWeekDay(i))).join("")}</div>
         <div class="hm-grid">${heatHtml}</div>
         <div class="hm-legend">
           <span class="hm-legend-item"><span class="hm-cell l0"></span> 0%</span>
@@ -311,16 +318,16 @@ const Renderer = {
         </div>
         <div class="hm-summary">
           <div class="hm-summary-row">
-            <div class="hm-summary-card"><span class="hm-num">${stats.summary.totalDays}</span><span class="hm-label">打卡天数 / ${stats.summary.monthDays}</span></div>
-            <div class="hm-summary-card"><span class="hm-num">${stats.summary.avgCompletion}%</span><span class="hm-label">平均完成率</span></div>
+            <div class="hm-summary-card"><span class="hm-num">${stats.summary.totalDays}</span><span class="hm-label">${tFormat("打卡天数 / {n}", {n: stats.summary.monthDays})}</span></div>
+            <div class="hm-summary-card"><span class="hm-num">${stats.summary.avgCompletion}%</span><span class="hm-label">${t("平均完成率")}</span></div>
           </div>
           <div class="hm-summary-row">
-            <div class="hm-summary-card"><span class="hm-num">${stats.summary.currentStreak}</span><span class="hm-label">当前连续</span></div>
-            <div class="hm-summary-card"><span class="hm-num">${stats.summary.bestStreak}</span><span class="hm-label">最长连续</span></div>
+            <div class="hm-summary-card"><span class="hm-num">${stats.summary.currentStreak}</span><span class="hm-label">${t("当前连续")}</span></div>
+            <div class="hm-summary-card"><span class="hm-num">${stats.summary.bestStreak}</span><span class="hm-label">${t("最长连续")}</span></div>
           </div>
         </div>
         <div class="hm-cats">${barHtml}</div>
-        <button class="hm-back-btn" id="hm-back-btn">📋 返回打卡</button>
+        <button class="hm-back-btn" id="hm-back-btn">${t("📋 返回打卡")}</button>
       </div>
     `;
 
@@ -473,13 +480,27 @@ const Renderer = {
     });
   },
 
+  /** 语言切换按钮（中文 <-> 英语） */
+  _bindLangBtn() {
+    const btn = $('#lang-btn');
+    if (!btn) return;
+    const syncLabel = () => { btn.textContent = (typeof getLocale === 'function' && getLocale() === 'en') ? '中文' : 'EN'; };
+    syncLabel();
+    btn.addEventListener('click', () => {
+      toggleLang();
+      syncLabel();
+      if (typeof applyI18n === 'function') applyI18n();   // 重新翻译静态文本
+      this.render();                                        // 重新渲染动态内容
+    });
+  },
+
   /* ==================== 组管理 ==================== */
 
   _handleAddCategory() {
     this._showModal(
-      '添加新组',
-      '<input type="text" id="cat-name-input" class="modal-input" placeholder="组名称（必填，最多8字）" maxlength="8" autocomplete="off">' +
-      '<input type="text" id="cat-icon-input" class="modal-input" placeholder="图标 emoji（可选，如 📚）" maxlength="4" autocomplete="off">',
+      t('添加新组'),
+      `<input type="text" id="cat-name-input" class="modal-input" placeholder="${t('组名称（必填，最多8字）')}" maxlength="8" autocomplete="off">` +
+      `<input type="text" id="cat-icon-input" class="modal-input" placeholder="${t('图标 emoji（可选，如 📚）')}" maxlength="4" autocomplete="off">`,
       () => {
         const name = $('#cat-name-input') ? $('#cat-name-input').value.trim() : '';
         const icon = $('#cat-icon-input') ? $('#cat-icon-input').value.trim() : '';
@@ -487,9 +508,9 @@ const Renderer = {
         const result = checkinApp.addCategory(name, icon);
         if (result.success) {
           this.render();
-          this._showModal('✅ 已添加', `新组「${name}」已创建，快添加你的计划吧！`);
+          this._showModal(t('✅ 已添加'), tFormat('新组「{name}」已创建，快添加你的计划吧！', {name}));
         } else {
-          this._showModal('添加失败', result.error || '请填写组名称');
+          this._showModal(t('添加失败'), t(result.error) || t('请填写组名称'));
         }
       }
     );
@@ -503,17 +524,17 @@ const Renderer = {
     const cat = allCats.find(c => c.id === catId);
     if (!cat) return;
     this._showModal(
-      `编辑「${cat.name}」`,
+      tFormat('编辑「{name}」', {name: cat.name}),
       `<input type="text" id="cat-name-input" class="modal-input" value="${this._escapeHtml(cat.name)}" maxlength="8" autocomplete="off">` +
       `<input type="text" id="cat-icon-input" class="modal-input" value="${this._escapeHtml(cat.icon)}" maxlength="4" autocomplete="off">` +
-      `<div class="modal-hint">${cat.hidden ? '⚠️ 此组当前已隐藏' : ''}</div>`,
+      `<div class="modal-hint">${cat.hidden ? t('⚠️ 此组当前已隐藏') : ''}</div>`,
       () => {
         const name = $('#cat-name-input') ? $('#cat-name-input').value.trim() : '';
         const icon = $('#cat-icon-input') ? $('#cat-icon-input').value.trim() : '';
-        if (!name) { this._showModal('修改失败', '组名称不能为空'); return; }
+        if (!name) { this._showModal(t('修改失败'), t('组名称不能为空')); return; }
         checkinApp.updateCategoryMeta(catId, { name, icon });
         this.render();
-        this._showModal('✅ 已修改', `「${name}」已更新。`);
+        this._showModal(t('✅ 已修改'), tFormat('「{name}」已更新。', {name}));
       }
     );
   },
@@ -525,13 +546,13 @@ const Renderer = {
         <span class="mgmt-icon">${cat.icon}</span>
         <span class="mgmt-name ${cat.hidden ? 'mgmt-hidden' : ''}">${this._escapeHtml(cat.name)}</span>
         <button class="mgmt-btn edit" data-action="edit">✏️</button>
-        <button class="mgmt-btn ${cat.hidden ? 'show' : 'hide'}" data-action="toggle">${cat.hidden ? '👁 恢复' : '🙈 隐藏'}</button>
+        <button class="mgmt-btn ${cat.hidden ? 'show' : 'hide'}" data-action="toggle">${cat.hidden ? t('👁 恢复') : t('🙈 隐藏')}</button>
       </div>
     `).join('');
 
     this._showModal(
-      '管理组',
-      `<div class="mgmt-list">${rows || '<div class="modal-hint">暂无分类</div>'}</div>`,
+      t('管理组'),
+      `<div class="mgmt-list">${rows || '<div class="modal-hint">'+t('暂无分类')+'</div>'}</div>`,
       null,
       {
         // 弹窗内部按钮事件（事件委托）
@@ -561,8 +582,8 @@ const Renderer = {
   /* ==================== 其他操作 ==================== */
 
   _handleReset() {
-    if (!this._isToday()) { this._showModal('提示', '请先回到今天再重置。'); return; }
-    this._showModal('确认重置', '今日所有打卡内容将被清空，确定吗？', () => {
+    if (!this._isToday()) { this._showModal(t('提示'), t('请先回到今天再重置。')); return; }
+    this._showModal(t('确认重置'), t('今日所有打卡内容将被清空，确定吗？'), () => {
       checkinApp.resetToday();
       this.render();
     });
@@ -574,7 +595,7 @@ const Renderer = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `打卡数据_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = t('打卡数据') + '_' + new Date().toISOString().slice(0, 10) + '.json';
     a.click();
     URL.revokeObjectURL(url);
   },
@@ -589,8 +610,8 @@ const Renderer = {
       const reader = new FileReader();
       reader.onload = (ev) => {
         const result = checkinApp.importData(ev.target.result);
-        if (result.success) { this.render(); this._showModal('导入成功', '数据已导入。'); }
-        else { this._showModal('导入失败', result.error); }
+        if (result.success) { this.render(); this._showModal(t('导入成功'), t('数据已导入。')); }
+        else { this._showModal(t('导入失败'), t(result.error)); }
       };
       reader.readAsText(file);
     });
@@ -598,25 +619,25 @@ const Renderer = {
   },
 
   _handleSaveDefaults() {
-    if (!this._isToday()) { this._showModal('提示', '请回到今天再保存默认值。'); return; }
+    if (!this._isToday()) { this._showModal(t('提示'), t('请回到今天再保存默认值。')); return; }
     this._showModal(
-      '保存为默认值',
-      '将今天的打卡条目保存为每日默认值？\n\n以后每天打开、重置时，会自动使用这些条目。',
+      t('保存为默认值'),
+      t('将今天的打卡条目保存为每日默认值？\\n\\n以后每天打开、重置时，会自动使用这些条目。'),
       () => {
         const result = checkinApp.saveCurrentAsDefaults();
         if (result.success) {
           // 同步未来已存在的日期（完全替换，保留已打勾状态）
           const syncRes = checkinApp.syncFutureDates(30);
-          let tip = `已保存 ${result.savedCount} 个组的每日默认条目。\n\n`;
+          let tip = tFormat('已保存 {count} 个组的每日默认条目。', {count: result.savedCount}) + '\n\n';
           if (result.savedCount === 0) {
-            tip = '今天所有组的条目都是空的。\n\n已跳过空组，保留原有默认条目不变。\n\n';
+            tip = t('今天所有组的条目都是空的。\\n\\n已跳过空组，保留原有默认条目不变。\\n\\n');
           }
           tip += syncRes.success && syncRes.synced > 0
-            ? `另外已把未来 ${syncRes.synced} 天的计划同步为今天的样子（已打勾的不受影响）。`
-            : '以后新建的日期会自动带上这些条目。';
-          this._showModal('✅ 已保存默认值', tip);
+            ? tFormat('另外已把未来 {days} 天的计划同步为今天的样子（已打勾的不受影响）。', {days: syncRes.synced})
+            : t('以后新建的日期会自动带上这些条目。');
+          this._showModal(t('✅ 已保存默认值'), tip);
         } else {
-          this._showModal('保存失败', result.error || '请先添加一些打卡条目。');
+          this._showModal(t('保存失败'), t(result.error) || t('请先添加一些打卡条目。'));
         }
       }
     );
@@ -681,7 +702,7 @@ const Renderer = {
     const title = $('#cal-title');
     const days = $('#cal-days');
     if (!title || !days) return;
-    title.textContent = year + '年 ' + month + '月';
+    title.textContent = fmtMonth(year, month);
 
     const todayKey = this._todayKey();
     const currentKey = this.currentDateKey || todayKey;

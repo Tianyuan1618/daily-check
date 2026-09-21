@@ -119,6 +119,29 @@ body::after {
   position: relative;
 }
 
+/* 语言切换按钮（右上角） */
+.lang-btn {
+  position: absolute;
+  top: 28px;
+  right: 16px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  color: var(--textLight);
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+  z-index: 2;
+}
+.lang-btn:hover {
+  border-color: var(--gold);
+  color: var(--primary);
+  background: #FFF;
+}
+
 .header::before {
   content: '';
   position: absolute;
