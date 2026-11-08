@@ -6,6 +6,13 @@
   <title>每日打卡 · 日省吾身</title>
   <meta name="description" content="每日打卡工具 — 中国风设计，含农历、节气、节日、德国假期、打卡管理">
 
+  <!-- PWA：可安装为 App -->
+  <meta name="theme-color" content="#8B2500">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+
   <!-- 字体：Google Fonts 思源宋体 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -105,6 +112,17 @@
   <script src="data.js?v=20260916d"></script>
   <script src="app.js?v=20260916d"></script>
   <script src="render.js?v=20260916d"></script>
+
+  <!-- PWA：注册 Service Worker（支持离线 / 安装为 App） -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function (err) {
+          console.warn('Service Worker 注册失败：', err);
+        });
+      });
+    }
+  </script>
 
 </body>
 </html>
